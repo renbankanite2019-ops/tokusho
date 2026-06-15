@@ -25,6 +25,7 @@ import {
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
 import { PLANS } from "../lib/plans";
+import { isTestBilling } from "../lib/billing";
 import {
   generatePrivacyHtml,
   validatePrivacyConfig,
@@ -52,7 +53,7 @@ const isProPlan = (name: string | null | undefined) => name === PLANS.PRO;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
   const { hasActivePayment, appSubscriptions } = await billing.check({
     plans: [PLANS.PRO],
     isTest,
@@ -74,7 +75,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin, billing } = await authenticate.admin(request);
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
 
   // Proプラン限定機能：サーバー側で必ず再確認する
   const { hasActivePayment, appSubscriptions } = await billing.check({

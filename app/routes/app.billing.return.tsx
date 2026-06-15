@@ -2,6 +2,7 @@ import { redirect, type LoaderFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
 import { PLANS } from "../lib/plans";
+import { isTestBilling } from "../lib/billing";
 
 /**
  * Shopify billing confirmation の返り先
@@ -15,7 +16,7 @@ import { PLANS } from "../lib/plans";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
 
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
   const { hasActivePayment, appSubscriptions } = await billing.check({
     plans: [PLANS.BASIC, PLANS.PRO],
     isTest,

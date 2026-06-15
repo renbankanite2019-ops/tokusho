@@ -21,6 +21,7 @@ import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
 import { generateTokushoHtml } from "../lib/tokushoTemplate";
 import { PLANS } from "../lib/plans";
+import { isTestBilling } from "../lib/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
@@ -33,7 +34,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   // 有料プランのみウォーターマークを非表示にする（実際の課金状態で判定）
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
   const { hasActivePayment } = await billing.check({
     plans: [PLANS.BASIC, PLANS.PRO],
     isTest,
@@ -54,7 +55,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ error: "設定が見つかりません" }, { status: 400 });
   }
 
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
   const { hasActivePayment } = await billing.check({
     plans: [PLANS.BASIC, PLANS.PRO],
     isTest,

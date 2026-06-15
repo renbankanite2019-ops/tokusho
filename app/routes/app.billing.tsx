@@ -16,12 +16,13 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { PLANS } from "../lib/plans";
+import { isTestBilling } from "../lib/billing";
 import { prisma } from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
 
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
   // 実際の課金状態を Shopify から取得（DBのキャッシュを信用しない）
   const { hasActivePayment, appSubscriptions } = await billing.check({
     plans: [PLANS.BASIC, PLANS.PRO],
@@ -51,7 +52,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const plan = formData.get("plan") as string;
   const intent = formData.get("intent") as string;
 
-  const isTest = process.env.NODE_ENV !== "production";
+  const isTest = isTestBilling();
 
   if (intent === "cancel") {
     // Shopify 側の実サブスクリプションをキャンセルしてから DB を更新する
