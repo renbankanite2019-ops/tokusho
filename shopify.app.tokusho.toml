@@ -25,15 +25,8 @@ api_version = "2026-04"
   topics = [ "app/uninstalled" ]
   uri = "/webhooks"
 
-  # GDPR / プライバシー必須webhook（App Store公開には必須）
-  [[webhooks.subscriptions]]
-  topics = [ "customers/data_request" ]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = [ "customers/redact" ]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = [ "shop/redact" ]
-  uri = "/webhooks"
+  # GDPR / プライバシー必須webhook は privacy_compliance で指定する（App Store公開に必須）
+  [webhooks.privacy_compliance]
+  customer_data_request_url = "https://tokusho-1067783089991.asia-northeast1.run.app/webhooks"
+  customer_deletion_url = "https://tokusho-1067783089991.asia-northeast1.run.app/webhooks"
+  shop_deletion_url = "https://tokusho-1067783089991.asia-northeast1.run.app/webhooks"

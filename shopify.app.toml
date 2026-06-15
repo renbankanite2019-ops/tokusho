@@ -27,18 +27,11 @@ api_version = "2026-04"
   topics = ["app/uninstalled"]
   uri = "/webhooks"
 
-  # GDPRの必須webhooks
-  [[webhooks.subscriptions]]
-  topics = ["customers/data_request"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["customers/redact"]
-  uri = "/webhooks"
-
-  [[webhooks.subscriptions]]
-  topics = ["shop/redact"]
-  uri = "/webhooks"
+  # GDPRの必須webhooks は privacy_compliance で指定
+  [webhooks.privacy_compliance]
+  customer_data_request_url = "https://YOUR_APP_URL/webhooks"
+  customer_deletion_url = "https://YOUR_APP_URL/webhooks"
+  shop_deletion_url = "https://YOUR_APP_URL/webhooks"
 
 [pos]
 embedded = false
