@@ -1,0 +1,11 @@
+node_modules
+build
+.git
+.env
+.env.*
+.shopify
+*.bak
+*.log
+.cache
+TODO.md
+npm-debug.log
