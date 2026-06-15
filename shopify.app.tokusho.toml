@@ -2,7 +2,7 @@
 
 client_id = "d113db73db87b4560cf073aa7e1b423f"
 name = "Tokusho"
-application_url = "https://safari-within-internationally-unknown.trycloudflare.com"
+application_url = "https://tokusho-1067783089991.asia-northeast1.run.app"
 embedded = true
 
 [build]
@@ -14,9 +14,8 @@ scopes = "write_content,read_content"
 
 [auth]
 redirect_urls = [
-  "https://safari-within-internationally-unknown.trycloudflare.com/auth/callback",
-  "https://safari-within-internationally-unknown.trycloudflare.com/auth/shopify/callback",
-  "https://midwest-throughout-advisory-counters.trycloudflare.com/api/auth/callback"
+  "https://tokusho-1067783089991.asia-northeast1.run.app/auth/callback",
+  "https://tokusho-1067783089991.asia-northeast1.run.app/auth/shopify/callback"
 ]
 
 [webhooks]
