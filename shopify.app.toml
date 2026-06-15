@@ -1,0 +1,44 @@
+name = "tokusho"
+client_id = "YOUR_CLIENT_ID"
+application_url = "https://YOUR_APP_URL"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "YOUR_DEV_STORE.myshopify.com"
+
+[access_scopes]
+# 特商法ページ作成に必要な最小限のスコープ
+# read_orders / read_customers は不要（Pages APIのみ使用）。
+# Protected Customer Data 審査を不必要に発生させないため最小権限に限定する。
+scopes = "write_content,read_content"
+
+[auth]
+redirect_urls = [
+  "https://YOUR_APP_URL/auth/callback",
+  "https://YOUR_APP_URL/auth/shopify/callback",
+  "https://YOUR_APP_URL/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2026-04"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/webhooks"
+
+  # GDPRの必須webhooks
+  [[webhooks.subscriptions]]
+  topics = ["customers/data_request"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["customers/redact"]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = ["shop/redact"]
+  uri = "/webhooks"
+
+[pos]
+embedded = false

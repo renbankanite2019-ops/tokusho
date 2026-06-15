@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Shopify session storage (required by shopify-app-remix)
+model Session {
+  id          String    @id
+  shop        String
+  state       String
+  isOnline    Boolean   @default(false)
+  scope       String?
+  expires     DateTime?
+  accessToken String
+  userId      BigInt?
+  firstName   String?
+  lastName    String?
+  email       String?
+  accountOwner Boolean  @default(false)
+  locale      String?
+  collaborator Boolean? @default(false)
+  emailVerified Boolean? @default(false)
+}
+
+// 店舗の特商法情報
+model ShopConfig {
+  id        String   @id @default(cuid())
+  shop      String   @unique  // myshopify.com domain
+  plan      Plan     @default(FREE)
+
+  // 事業者情報
+  businessType  BusinessType @default(INDIVIDUAL)
+  sellerName    String       // 販売業者名 / 屋号
+  representativeName String? // 代表者名（法人の場合必須）
+  responsibleName    String? // 通販責任者名
+  postalCode    String?
+  prefecture    String?
+  address       String       // 住所
+  buildingName  String?      // 建物名・部屋番号
+  phone         String       // 電話番号
+  email         String       // メールアドレス
+  websiteUrl    String?
+
+  // 販売条件
+  salesPrice      String  @default("各商品ページに記載")
+  shippingFee     String  @default("全国一律500円（税込）")
+  paymentMethods  String[] // 使用可能な支払方法
+  paymentTiming   String  @default("クレジットカード：注文時決済")
+  deliveryTiming  String  @default("ご注文確認後3〜5営業日以内に発送")
+  applicationPeriod String? // 申込みの有効期限（期間限定販売の場合）
+
+  // 返品・キャンセル
+  returnPolicy    ReturnPolicy @default(STANDARD)
+  returnDeadline  String  @default("商品到着後8日以内")
+  returnCondition String  @default("未使用・未開封のもの")
+  returnShipping  ShippingBurden @default(CUSTOMER) // 返品送料負担
+  returnNote      String? // 返品に関する補足
+  contractLiability String? // 契約不適合責任（商品の欠陥への対応）
+
+  // その他
+  otherCosts      String? // 商品代金・送料以外の費用
+  sellsDigital         Boolean @default(false) // デジタル商品を販売する
+  softwareRequirements String? // ソフトウェア動作環境（デジタル商品の場合）
+  sellsSubscription    Boolean @default(false) // 継続課金・定期購入を販売する
+  subscriptionTerms    String? // 継続契約条件
+  specialConditions    String? // 特別販売条件
+  contactNote     String? // お問い合わせに関する注意
+
+  // 公開状態
+  pageId          String? // Shopify Page ID
+  pageUrl         String? // 公開URL
+  lastPublishedAt DateTime?
+  isPublished     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// プライバシーポリシー（Proプラン機能）。事業者の識別情報は ShopConfig を再利用する。
+model PrivacyConfig {
+  id            String   @id @default(cuid())
+  shop          String   @unique
+
+  operatorName  String   // 個人情報を取り扱う事業者名（屋号・法人名）
+  contactEmail  String   // 問い合わせ先メールアドレス
+  purposes      String[] // 個人情報の利用目的
+  collectedItems String[] // 取得する個人情報の種類
+
+  usesCookies      Boolean @default(true)
+  usesAnalytics    Boolean @default(false)
+  analyticsNote    String? // 例: Google Analytics 等のツール名
+  sharesThirdParty Boolean @default(false)
+  thirdPartyNote   String? // 第三者提供の内容
+
+  disclosureContact String? // 開示等の請求の窓口・個人情報保護管理者
+  extraNote         String? // 補足事項
+
+  // 公開状態
+  pageId          String?
+  pageUrl         String?
+  lastPublishedAt DateTime?
+  isPublished     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Plan {
+  FREE
+  BASIC
+  PRO
+}
+
+enum BusinessType {
+  INDIVIDUAL  // 個人事業主
+  CORPORATION // 法人
+}
+
+enum ReturnPolicy {
+  STANDARD    // 法定通り（8日以内）
+  NO_RETURN   // 返品不可（理由明記が必要）
+  CUSTOM      // カスタム
+}
+
+enum ShippingBurden {
+  CUSTOMER    // お客様負担
+  SELLER      // 販売者負担
+  DEPENDS     // 条件による
+}

@@ -1,0 +1,40 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "d113db73db87b4560cf073aa7e1b423f"
+name = "Tokusho"
+application_url = "https://safari-within-internationally-unknown.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "kizuna-digital.myshopify.com"
+
+[access_scopes]
+scopes = "write_content,read_content"
+
+[auth]
+redirect_urls = [
+  "https://safari-within-internationally-unknown.trycloudflare.com/auth/callback",
+  "https://safari-within-internationally-unknown.trycloudflare.com/auth/shopify/callback",
+  "https://midwest-throughout-advisory-counters.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2026-04"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks"
+
+  # GDPR / プライバシー必須webhook（App Store公開には必須）
+  [[webhooks.subscriptions]]
+  topics = [ "customers/data_request" ]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = [ "customers/redact" ]
+  uri = "/webhooks"
+
+  [[webhooks.subscriptions]]
+  topics = [ "shop/redact" ]
+  uri = "/webhooks"

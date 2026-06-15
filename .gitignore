@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+build/
+.cache/
+*.log
+.shopify/
+extensions/*/dist/
+
+# 秘密情報を含むためコミット禁止（認証情報は .env のみで管理する）
+TODO.md
+
+# バックアップファイル
+*.bak
