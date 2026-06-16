@@ -97,14 +97,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // redirect Response はそのまま通す
       if (e instanceof Response) throw e;
       const msg = e instanceof Error ? e.message : String(e);
-      console.error("[billing] request failed:", msg);
-      // Dev環境では "Apps without a public distribution cannot use the Billing API" が出る
-      // App Store 公開後に解消される
+      // BillingError は本当の原因を errorData / errors に持つ。
+      // "Error while billing the store" だけだと原因不明なので詳細を出す。
+      const detail =
+        (e as any)?.errorData ?? (e as any)?.errors ?? (e as any)?.body ?? null;
+      console.error("[billing] request failed:", msg, "detail:", JSON.stringify(detail));
       const isDistributionError = msg.includes("public distribution");
       return json({
         error: isDistributionError
           ? "開発環境ではBilling APIは使用できません。App Store公開後に有効になります。"
-          : `サブスクリプション作成失敗: ${msg}`,
+          : `サブスクリプション作成失敗: ${msg}${detail ? ` — ${JSON.stringify(detail)}` : ""}`,
       }, { status: 500 });
     }
   }
