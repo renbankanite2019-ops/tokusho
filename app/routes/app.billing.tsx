@@ -23,21 +23,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
 
   const isTest = isTestBilling();
-  // 実際の課金状態を Shopify から取得（DBのキャッシュを信用しない）
-  const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: [PLANS.BASIC, PLANS.PRO],
-    isTest,
-  });
 
-  const activePlanName = hasActivePayment ? appSubscriptions[0]?.name ?? null : null;
+  let hasActivePayment = false;
+  let activePlanName: string | null = null;
+  try {
+    // 実際の課金状態を Shopify から取得（DBのキャッシュを信用しない）
+    const result = await billing.check({ plans: [PLANS.BASIC, PLANS.PRO], isTest });
+    hasActivePayment = result.hasActivePayment;
+    activePlanName = hasActivePayment ? result.appSubscriptions[0]?.name ?? null : null;
 
-  // DBのプラン値を実際の課金状態に合わせて同期しておく
-  const dbPlan =
-    activePlanName === PLANS.PRO ? "PRO" : activePlanName === PLANS.BASIC ? "BASIC" : "FREE";
-  await prisma.shopConfig.updateMany({
-    where: { shop: session.shop },
-    data: { plan: dbPlan },
-  });
+    // DBのプラン値を実際の課金状態に合わせて同期しておく
+    const dbPlan =
+      activePlanName === PLANS.PRO ? "PRO" : activePlanName === PLANS.BASIC ? "BASIC" : "FREE";
+    await prisma.shopConfig.updateMany({
+      where: { shop: session.shop },
+      data: { plan: dbPlan },
+    });
+  } catch (e) {
+    // 課金状態の取得に失敗してもページは表示する（DBのキャッシュにフォールバック）
+    console.error("[billing loader] billing.check failed:", e);
+    const cfg = await prisma.shopConfig
+      .findUnique({ where: { shop: session.shop }, select: { plan: true } })
+      .catch(() => null);
+    if (cfg && cfg.plan !== "FREE") {
+      activePlanName = cfg.plan === "PRO" ? PLANS.PRO : PLANS.BASIC;
+      hasActivePayment = true;
+    }
+  }
 
   return json({
     currentPlan: activePlanName ?? "FREE",

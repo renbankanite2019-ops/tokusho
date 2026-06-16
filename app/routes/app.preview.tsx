@@ -35,10 +35,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // 有料プランのみウォーターマークを非表示にする（実際の課金状態で判定）
   const isTest = isTestBilling();
-  const { hasActivePayment } = await billing.check({
-    plans: [PLANS.BASIC, PLANS.PRO],
-    isTest,
-  });
+  let hasActivePayment = false;
+  try {
+    ({ hasActivePayment } = await billing.check({ plans: [PLANS.BASIC, PLANS.PRO], isTest }));
+  } catch (e) {
+    console.error("[preview loader] billing.check failed:", e);
+  }
 
   const html = generateTokushoHtml(config as any, { hideWatermark: hasActivePayment });
   return json({ config, html });

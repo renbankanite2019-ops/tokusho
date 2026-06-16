@@ -54,11 +54,16 @@ const isProPlan = (name: string | null | undefined) => name === PLANS.PRO;
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
   const isTest = isTestBilling();
-  const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: [PLANS.PRO],
-    isTest,
-  });
-  const isPro = hasActivePayment && isProPlan(appSubscriptions[0]?.name);
+  let isPro = false;
+  try {
+    const { hasActivePayment, appSubscriptions } = await billing.check({
+      plans: [PLANS.PRO],
+      isTest,
+    });
+    isPro = hasActivePayment && isProPlan(appSubscriptions[0]?.name);
+  } catch (e) {
+    console.error("[privacy loader] billing.check failed:", e);
+  }
 
   const [privacy, shopConfig] = await Promise.all([
     prisma.privacyConfig.findUnique({ where: { shop: session.shop } }),
