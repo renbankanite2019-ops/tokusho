@@ -101,12 +101,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       // "Error while billing the store" だけだと原因不明なので詳細を出す。
       const detail =
         (e as any)?.errorData ?? (e as any)?.errors ?? (e as any)?.body ?? null;
-      console.error("[billing] request failed:", msg, "detail:", JSON.stringify(detail));
-      const isDistributionError = msg.includes("public distribution");
+      const detailStr = detail ? JSON.stringify(detail) : "";
+      console.error("[billing] request failed:", msg, "detail:", detailStr);
+      const isDistributionError =
+        msg.includes("public distribution") || detailStr.includes("public distribution");
       return json({
         error: isDistributionError
-          ? "開発環境ではBilling APIは使用できません。App Store公開後に有効になります。"
-          : `サブスクリプション作成失敗: ${msg}${detail ? ` — ${JSON.stringify(detail)}` : ""}`,
+          ? "Billing APIを利用するには、アプリを「公開配布（Public distribution / Shopify App Store）」に設定する必要があります。Partners Dashboard → アプリ → Distribution で設定してください。"
+          : `サブスクリプション作成失敗: ${msg}${detail ? ` — ${detailStr}` : ""}`,
       }, { status: 500 });
     }
   }
