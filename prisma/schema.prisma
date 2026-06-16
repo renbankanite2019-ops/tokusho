@@ -24,6 +24,9 @@ model Session {
   locale      String?
   collaborator Boolean? @default(false)
   emailVerified Boolean? @default(false)
+  // shopify-app-session-storage-prisma v9 で必要（リフレッシュトークン）
+  refreshToken        String?
+  refreshTokenExpires DateTime?
 }
 
 // 店舗の特商法情報
