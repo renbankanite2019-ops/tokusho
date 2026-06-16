@@ -169,9 +169,26 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     return json({ success: true, pageUrl });
   } catch (error) {
-    // shopify-app-remix は再認証/トークン更新が必要なとき Response を throw する。
-    // これを握りつぶすと再認証できず "[object Response]" になるため、そのまま通す。
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) {
+      // 再認証が必要な場合（リダイレクト or 再認可ヘッダ）だけ通す
+      const reauth = error.headers.get(
+        "x-shopify-api-request-failure-reauthorize"
+      );
+      if ((error.status >= 300 && error.status < 400) || reauth) {
+        throw error;
+      }
+      // それ以外（403等）は本文を読んで実際のメッセージを表示する
+      const body = await error
+        .clone()
+        .text()
+        .catch(() => "");
+      const detail = (body || error.statusText || "").slice(0, 300);
+      console.error("[preview action] Pages API HTTP", error.status, detail);
+      return json(
+        { error: `ページの公開に失敗しました (HTTP ${error.status}): ${detail}` },
+        { status: 500 }
+      );
+    }
     console.error("[preview action] Pages API error:", error);
     const msg = error instanceof Error ? error.message : String(error);
     return json(
