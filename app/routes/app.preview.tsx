@@ -169,6 +169,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     return json({ success: true, pageUrl });
   } catch (error) {
+    // shopify-app-remix は再認証/トークン更新が必要なとき Response を throw する。
+    // これを握りつぶすと再認証できず "[object Response]" になるため、そのまま通す。
+    if (error instanceof Response) throw error;
     console.error("[preview action] Pages API error:", error);
     const msg = error instanceof Error ? error.message : String(error);
     return json(
