@@ -68,13 +68,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "cancel") {
     // Shopify 側の実サブスクリプションをキャンセルしてから DB を更新する
-    const { appSubscriptions } = await billing.check({
-      plans: [PLANS.BASIC, PLANS.PRO],
-      isTest,
-    });
-    const sub = appSubscriptions[0];
-    if (sub) {
-      await billing.cancel({ subscriptionId: sub.id, isTest, prorate: true });
+    try {
+      const { appSubscriptions } = await billing.check({
+        plans: [PLANS.BASIC, PLANS.PRO],
+        isTest,
+      });
+      const sub = appSubscriptions[0];
+      if (sub) {
+        await billing.cancel({ subscriptionId: sub.id, isTest, prorate: true });
+      }
+    } catch (e) {
+      console.error("[billing cancel] billing.check/cancel failed:", e);
     }
     await prisma.shopConfig.updateMany({
       where: { shop: session.shop },

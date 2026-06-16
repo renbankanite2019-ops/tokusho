@@ -83,11 +83,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const isTest = isTestBilling();
 
   // Proプラン限定機能：サーバー側で必ず再確認する
-  const { hasActivePayment, appSubscriptions } = await billing.check({
-    plans: [PLANS.PRO],
-    isTest,
-  });
-  if (!(hasActivePayment && isProPlan(appSubscriptions[0]?.name))) {
+  let isPro = false;
+  try {
+    const { hasActivePayment, appSubscriptions } = await billing.check({
+      plans: [PLANS.PRO],
+      isTest,
+    });
+    isPro = hasActivePayment && isProPlan(appSubscriptions[0]?.name);
+  } catch (e) {
+    console.error("[privacy action] billing.check failed:", e);
+  }
+  if (!isPro) {
     return json(
       { error: "プライバシーポリシー生成はProプラン限定の機能です。" },
       { status: 403 }

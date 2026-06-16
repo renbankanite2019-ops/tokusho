@@ -58,10 +58,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const isTest = isTestBilling();
-  const { hasActivePayment } = await billing.check({
-    plans: [PLANS.BASIC, PLANS.PRO],
-    isTest,
-  });
+  let hasActivePayment = false;
+  try {
+    ({ hasActivePayment } = await billing.check({ plans: [PLANS.BASIC, PLANS.PRO], isTest }));
+  } catch (e) {
+    console.error("[preview action] billing.check failed:", e);
+  }
 
   // 公開時刻を確定し、その時刻を「最終更新日」として埋め込む
   const publishedAt = new Date();
