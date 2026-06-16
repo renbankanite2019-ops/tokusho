@@ -19,6 +19,9 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  // 公開配布(Public distribution)のアプリは有効期限切れトークン(online)が必須。
+  // offline(無期限)トークンだと Admin API が 403 Forbidden を返すため online を使う。
+  useOnlineTokens: true,
   future: {},
   billing: {
     // shopify-api v13 以降は line item 形式が必須（旧 amount/interval 直書きは不可）
