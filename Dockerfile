@@ -19,5 +19,6 @@ ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
-# 起動時に未適用のマイグレーションを反映してからサーバーを起動
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+# サーバー起動のみ（cold start を短くするため migrate はここで実行しない）。
+# スキーマ変更時は別途 `npx prisma migrate deploy` を手動/CIで実行すること。
+CMD ["npm", "run", "start"]

@@ -12,10 +12,8 @@ export const links: LinksFunction = () => [
     rel: "preconnect",
     href: "https://cdn.shopify.com/",
   },
-  {
-    rel: "stylesheet",
-    href: "https://unpkg.com/@shopify/polaris@13/build/esm/styles.css",
-  },
+  // Polaris CSS は各アプリルート(app.tsx)でローカル配信する。
+  // unpkg CDN からの読み込みはレンダーブロッキングで遅いため使用しない。
 ];
 
 export default function App() {
