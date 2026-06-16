@@ -1,0 +1,19 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景（Shopify green 系アクセント） -->
+  <rect width="1024" height="1024" rx="224" fill="#008060"/>
+  <!-- 書類本体 -->
+  <g>
+    <path d="M312 232 h300 l128 128 v404 a32 32 0 0 1 -32 32 H312 a32 32 0 0 1 -32 -32 V264 a32 32 0 0 1 32 -32 Z" fill="#ffffff"/>
+    <!-- 折れ角 -->
+    <path d="M612 232 v96 a32 32 0 0 0 32 32 h96 Z" fill="#cdeede"/>
+    <!-- 本文ライン -->
+    <g fill="#9bb7ad">
+      <rect x="356" y="412" width="312" height="26" rx="13"/>
+      <rect x="356" y="476" width="312" height="26" rx="13"/>
+      <rect x="356" y="540" width="220" height="26" rx="13"/>
+    </g>
+  </g>
+  <!-- チェックバッジ -->
+  <circle cx="660" cy="664" r="120" fill="#004c3f"/>
+  <path d="M604 666 l40 40 l76 -88" fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
