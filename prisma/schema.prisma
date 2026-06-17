@@ -120,6 +120,22 @@ model PrivacyConfig {
   updatedAt DateTime @updatedAt
 }
 
+// 追加ページ（Proプラン機能）: 会社概要 / お問い合わせ / 返品ポリシー
+model CustomPage {
+  id              String   @id @default(cuid())
+  shop            String
+  pageType        String   // about | contact | returns
+  body            String   // ページ本文（プレーンテキスト）
+  pageId          String?
+  pageUrl         String?
+  lastPublishedAt DateTime?
+  isPublished     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([shop, pageType])
+}
+
 enum Plan {
   FREE
   BASIC

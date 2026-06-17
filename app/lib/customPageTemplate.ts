@@ -1,0 +1,86 @@
+import type { ShopConfig } from "@prisma/client";
+import { escapeHtml } from "./tokushoTemplate";
+
+export const PAGE_TYPES = {
+  about: { title: "会社概要", handle: "about" },
+  contact: { title: "お問い合わせ", handle: "contact" },
+  returns: { title: "返品・交換ポリシー", handle: "returns" },
+} as const;
+
+export type PageType = keyof typeof PAGE_TYPES;
+
+export const PAGE_TYPE_LIST: PageType[] = ["about", "contact", "returns"];
+
+export function isPageType(v: string | undefined): v is PageType {
+  return v === "about" || v === "contact" || v === "returns";
+}
+
+const RETURN_SHIPPING: Record<string, string> = {
+  CUSTOMER: "お客様ご負担",
+  SELLER: "当店負担",
+  DEPENDS: "初期不良・当店都合は当店負担、お客様都合はお客様ご負担",
+};
+
+/** 各ページの初期本文（ShopConfig から雛形を生成。利用者が編集して公開する） */
+export function defaultBody(type: PageType, c: ShopConfig | null): string {
+  const name = c?.sellerName || "";
+  const rep = c?.representativeName || "";
+  const addr = c
+    ? [c.postalCode ? `〒${c.postalCode}` : "", c.prefecture || "", c.address || "", c.buildingName || ""]
+        .filter(Boolean)
+        .join(" ")
+    : "";
+  const phone = c?.phone || "";
+  const email = c?.email || "";
+
+  if (type === "about") {
+    return [
+      `販売業者：${name}`,
+      rep ? `代表者：${rep}` : "代表者：（記入してください）",
+      `所在地：${addr}`,
+      `電話番号：${phone}`,
+      `メールアドレス：${email}`,
+      `設立：（記入してください）`,
+      `事業内容：（記入してください）`,
+    ].join("\n");
+  }
+  if (type === "contact") {
+    return [
+      `お問い合わせは下記までご連絡ください。`,
+      ``,
+      `メールアドレス：${email}`,
+      `電話番号：${phone}`,
+      `受付時間：（例：平日 10:00〜17:00）`,
+      ``,
+      `お問い合わせ内容には、数営業日以内に返信いたします。`,
+    ].join("\n");
+  }
+  // returns
+  return [
+    `【返品・交換について】`,
+    ``,
+    `返品期限：${c?.returnDeadline || "商品到着後8日以内"}`,
+    `返品条件：${c?.returnCondition || "未使用・未開封のもの"}`,
+    `返品送料：${RETURN_SHIPPING[c?.returnShipping || "CUSTOMER"] || ""}`,
+    c?.contractLiability ? `契約不適合責任：${c.contractLiability}` : "",
+    ``,
+    `返品をご希望の場合は、まず ${email} までご連絡ください。`,
+  ]
+    .filter((l) => l !== undefined)
+    .join("\n");
+}
+
+/** ページ本文（プレーンテキスト）を安全な HTML にして公開用に整形する */
+export function renderCustomPageHtml(title: string, body: string): string {
+  const safeBody = escapeHtml(body).replace(/\n/g, "<br>");
+  return `
+<div class="custom-page">
+  <h1>${escapeHtml(title)}</h1>
+  <div class="custom-page-body">${safeBody}</div>
+</div>
+<style>
+.custom-page { max-width: 800px; margin: 0 auto; padding: 20px; font-family: sans-serif; line-height: 1.9; }
+.custom-page h1 { font-size: 1.5em; margin-bottom: 16px; }
+</style>
+`.trim();
+}

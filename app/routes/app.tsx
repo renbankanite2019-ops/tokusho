@@ -25,6 +25,7 @@ export default function App() {
         <a href="/app/setup">事業者情報</a>
         <a href="/app/preview">プレビュー・公開</a>
         <a href="/app/privacy">プライバシーポリシー</a>
+        <a href="/app/pages">追加ページ</a>
         <a href="/app/billing">プラン・お支払い</a>
       </NavMenu>
       <Outlet />
