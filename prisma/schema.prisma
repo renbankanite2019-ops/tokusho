@@ -76,6 +76,11 @@ model ShopConfig {
   specialConditions    String? // 特別販売条件
   contactNote     String? // お問い合わせに関する注意
 
+  // デザイン・表示（Basicプラン以上で反映）
+  accentColor   String  @default("#008060") // アクセントカラー
+  templateStyle String  @default("table")    // table | minimal
+  bilingual     Boolean @default(false)       // 日英併記（#2 で使用）
+
   // 公開状態
   pageId          String? // Shopify Page ID
   pageUrl         String? // 公開URL

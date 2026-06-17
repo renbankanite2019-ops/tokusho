@@ -94,6 +94,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     subscriptionTerms: (formData.get("subscriptionTerms") as string) || null,
     specialConditions: (formData.get("specialConditions") as string) || null,
     contactNote: (formData.get("contactNote") as string) || null,
+    accentColor: (formData.get("accentColor") as string) || "#008060",
+    templateStyle: (formData.get("templateStyle") as string) || "table",
   };
 
   const errors = validateConfig(data);
@@ -133,6 +135,9 @@ export default function Setup() {
   const [sellsSubscription, setSellsSubscription] = useState(
     config?.sellsSubscription ?? false
   );
+  const [templateStyle, setTemplateStyle] = useState<string[]>([
+    config?.templateStyle || "table",
+  ]);
 
   // TextField の入力状態（Polaris v13 は controlled が必須）
   const [fields, setFields] = useState({
@@ -160,6 +165,7 @@ export default function Setup() {
     subscriptionTerms: config?.subscriptionTerms || "",
     specialConditions: config?.specialConditions || "",
     contactNote: config?.contactNote || "",
+    accentColor: config?.accentColor || "#008060",
   });
   const setField = (key: keyof typeof fields) => (value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -181,6 +187,7 @@ export default function Setup() {
         {sellsSubscription && (
           <input type="hidden" name="sellsSubscription" value="on" />
         )}
+        <input type="hidden" name="templateStyle" value={templateStyle[0]} />
 
         <Layout>
           {actionData?.errors && (
@@ -533,6 +540,40 @@ export default function Setup() {
                     autoComplete="off"
                     multiline={2}
                     helpText="対応時間・対応言語など"
+                  />
+                </FormLayout>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+
+          {/* 6. デザイン */}
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">
+                  6. デザイン
+                </Text>
+                <Text as="p" variant="bodyMd" tone="subdued">
+                  ※ デザインのカスタマイズは Basic プラン以上で公開ページに反映されます（Freeプランは標準デザイン）。
+                </Text>
+                <FormLayout>
+                  <TextField
+                    label="アクセントカラー"
+                    name="accentColor"
+                    value={fields.accentColor}
+                    onChange={setField("accentColor")}
+                    autoComplete="off"
+                    placeholder="#008060"
+                    helpText="見出し・表のヘッダーに使う色（例：#008060）"
+                  />
+                  <ChoiceList
+                    title="レイアウト"
+                    choices={[
+                      { label: "標準（枠線あり）", value: "table" },
+                      { label: "ミニマル（枠線控えめ）", value: "minimal" },
+                    ]}
+                    selected={templateStyle}
+                    onChange={setTemplateStyle}
                   />
                 </FormLayout>
               </BlockStack>

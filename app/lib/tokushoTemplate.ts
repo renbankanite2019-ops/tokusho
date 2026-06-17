@@ -37,8 +37,20 @@ const SHIPPING_BURDEN_LABELS: Record<string, string> = {
  */
 export function generateTokushoHtml(
   config: ShopConfig,
-  opts: { hideWatermark?: boolean } = {}
+  opts: { hideWatermark?: boolean; applyDesign?: boolean } = {}
 ): string {
+  // デザインカスタマイズは Basic プラン以上（applyDesign=true）でのみ反映する
+  const design = opts.applyDesign === true;
+  // accentColor は有効な16進カラーのみ採用（<style>へのCSSインジェクション防止）
+  const accent =
+    design && /^#[0-9a-fA-F]{3,8}$/.test(config.accentColor || "")
+      ? config.accentColor
+      : "";
+  const thBg = accent || "#f5f5f5";
+  const thColor = accent ? "#ffffff" : "#202223";
+  const minimal = design && config.templateStyle === "minimal";
+  const cellBorder = minimal ? "none" : "1px solid #ddd";
+  const rowBorder = minimal ? "1px solid #eee" : "1px solid #ddd";
   const {
     businessType,
     sellerName,
@@ -219,6 +231,9 @@ export function generateTokushoHtml(
   font-family: sans-serif;
   line-height: 1.8;
 }
+.tokusho-container h1 {
+  ${design && accent ? `border-bottom: 3px solid ${accent}; padding-bottom: 8px;` : ""}
+}
 .tokusho-updated {
   color: #666;
   font-size: 0.9em;
@@ -231,13 +246,15 @@ export function generateTokushoHtml(
 }
 .tokusho-table th,
 .tokusho-table td {
-  border: 1px solid #ddd;
+  border: ${cellBorder};
+  border-bottom: ${rowBorder};
   padding: 12px 16px;
   text-align: left;
   vertical-align: top;
 }
 .tokusho-table th {
-  background: #f5f5f5;
+  background: ${thBg};
+  color: ${thColor};
   white-space: nowrap;
   width: 200px;
   font-weight: bold;

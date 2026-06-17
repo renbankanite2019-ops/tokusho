@@ -42,7 +42,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("[preview loader] billing.check failed:", e);
   }
 
-  const html = generateTokushoHtml(config as any, { hideWatermark: hasActivePayment });
+  const html = generateTokushoHtml(config as any, {
+    hideWatermark: hasActivePayment,
+    applyDesign: hasActivePayment,
+  });
   return json({ config, html });
 };
 
@@ -69,7 +72,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const publishedAt = new Date();
   const html = generateTokushoHtml(
     { ...config, lastPublishedAt: publishedAt } as any,
-    { hideWatermark: hasActivePayment }
+    { hideWatermark: hasActivePayment, applyDesign: hasActivePayment }
   );
 
   // Shopify Pages API でページを作成/更新
