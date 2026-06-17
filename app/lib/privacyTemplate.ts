@@ -86,6 +86,14 @@ export function generatePrivacyHtml(
 
   const disclosureContact = escapeHtml(privacy.disclosureContact) || email;
   const extra = escapeHtml(privacy.extraNote);
+  const safeRepName = escapeHtml(shopConfig?.representativeName);
+  // 海外SaaS（決済・アクセス解析等）利用時の外国にある第三者への提供に関する記載
+  const foreignTransfer =
+    privacy.usesAnalytics || privacy.sharesThirdParty
+      ? `<p>アクセス解析や決済等のために、外国にある第三者が運営するサービスを利用することがあります。
+         この場合、当該国における個人情報の保護に関する制度や、当該第三者が講じる個人情報保護のための措置に関する情報は、
+         下記お問い合わせ窓口にてご提供します。</p>`
+      : "";
 
   const updatedSource = privacy.lastPublishedAt ?? privacy.updatedAt ?? null;
   const now = (updatedSource ? new Date(updatedSource) : new Date()).toLocaleDateString(
@@ -105,6 +113,7 @@ export function generatePrivacyHtml(
   <h2>1. 事業者情報</h2>
   <table class="pp-table">
     <tr><th>事業者名</th><td>${operator}</td></tr>
+    ${safeRepName ? `<tr><th>代表者名</th><td>${safeRepName}</td></tr>` : ""}
     ${safeAddress ? `<tr><th>所在地</th><td>${safeAddress}</td></tr>` : ""}
     <tr><th>連絡先</th><td><a href="mailto:${email}">${email}</a></td></tr>
   </table>
@@ -120,17 +129,23 @@ export function generatePrivacyHtml(
   <h2>4. 個人情報の安全管理</h2>
   <p>当店は、個人情報の漏えい・滅失・毀損を防止するため、必要かつ適切な安全管理措置を講じ、
   従業者および委託先に対して必要な監督を行います。</p>
+  <p>万一、個人情報の漏えい等が発生した場合は、法令に従い、必要な調査を行うとともに、
+  ご本人への通知および個人情報保護委員会への報告等、適切な対応を行います。</p>
 
   <h2>5. 第三者への提供</h2>
   ${thirdParty}
+  ${foreignTransfer}
 
   <h2>6. Cookie・アクセス解析について</h2>
   ${cookieSection}
+  <p>当サイトのご利用を継続された場合、Cookieの利用に同意いただいたものとみなします。
+  同意いただけない場合は、ブラウザの設定によりCookieを無効化・削除いただけます。</p>
 
   <h2>7. 個人情報の開示・訂正・利用停止等</h2>
-  <p>ご本人からの個人情報の開示・訂正・追加・削除・利用停止等のご請求があった場合は、
-  ご本人であることを確認のうえ、法令に従い速やかに対応します。</p>
+  <p>ご本人からの個人情報（保有個人データ）の開示・訂正・追加・削除・利用停止・第三者提供の停止等の
+  ご請求があった場合は、ご本人であることを確認のうえ、法令に従い速やかに対応します。</p>
   <p>請求の窓口：${disclosureContact}</p>
+  <p>手数料：開示等のご請求に対する手数料はいただいておりません。</p>
 
   <h2>8. お問い合わせ窓口</h2>
   <p>本ポリシーに関するお問い合わせは、下記までご連絡ください。</p>

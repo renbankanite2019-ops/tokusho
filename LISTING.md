@@ -25,7 +25,7 @@
 日本で通信販売（オンライン販売）を行うすべての事業者は、特定商取引法（法第11条）により「特定商取引法に基づく表記」ページの掲載が義務付けられています。Tokusho は、消費者庁のガイドラインで求められる表示項目をフォームで入力するだけで、整ったページを自動生成し、あなたの Shopify ストアに公開します。
 
 **主な特長**
-- **法定の表示項目をカバー**：販売価格・送料、支払方法・時期、引渡し時期、返品特約、事業者名・住所・電話番号・代表者名などを網羅。
+- **法定の表示項目に対応**：販売価格・送料、支払方法・時期、引渡し時期、返品特約、事業者名・住所・電話番号・代表者名などの入力に対応。
 - **個人事業主／法人の両方に対応**：事業者種別に応じて表示項目を切り替え。
 - **デジタル商品・継続課金にも対応**：動作環境や継続契約条件など、該当する場合の項目を入力可能。
 - **ワンクリックで公開・更新**：`/pages/tokushoho` にページを自動作成。情報を変更したら再公開するだけ。
@@ -40,7 +40,7 @@
 Every business selling online in Japan is legally required (Specified Commercial Transactions Act, Article 11) to publish a "特定商取引法に基づく表記" disclosure page. Tokusho generates a clean, complete page from a simple form and publishes it to your Shopify store.
 
 **Highlights**
-- Covers the legally required disclosure items (price & shipping, payment, delivery timing, return policy, business name/address/phone/representative, etc.).
+- Helps you provide the disclosure items required by the guideline (price & shipping, payment, delivery timing, return policy, business name/address/phone/representative, etc.).
 - Supports both sole proprietors and corporations.
 - Handles digital goods and subscriptions (software requirements, recurring terms) when applicable.
 - One-click publish/update to `/pages/tokushoho`.
@@ -52,7 +52,7 @@ Three steps: ① enter business info → ② preview → ③ publish.
 Note: This app assists with drafting the page. You are responsible for the legal accuracy of the content; consult a professional if needed.
 
 ## 5. Feature list（最大5つ・タイトル＋説明）
-1. **法定必須項目をカバー** — 消費者庁ガイドラインで求められる表示項目をフォームで入力。
+1. **法定の表示項目に対応** — 消費者庁ガイドラインで求められる表示項目をフォームで入力。
 2. **数分で作成・ワンクリック公開** — `/pages/tokushoho` に自動でページ作成。
 3. **個人・法人どちらも対応** — 事業者種別で項目を自動切替。
 4. **情報更新も即反映** — 編集して再公開するだけ、最終更新日も自動更新。

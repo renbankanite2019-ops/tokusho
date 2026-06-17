@@ -131,7 +131,7 @@ const PLAN_DETAILS = [
     features: [
       "特商法ページの自動生成",
       "Shopifyストアへの直接公開",
-      "法定必須項目すべて対応",
+      "法定の表示項目に対応",
       "ページの更新・再公開",
     ],
     limitations: ["ページ下部に「Powered by Tokusho」の表示が入ります"],

@@ -27,7 +27,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 const SHIPPING_BURDEN_LABELS: Record<string, string> = {
   CUSTOMER: "お客様ご負担",
   SELLER: "当店負担",
-  DEPENDS: "初期不良・当店都合による場合は当店負担、お客様都合による場合はお客様ご負担",
+  DEPENDS: "初期不良・当店都合による場合は当店負担、お客様都合による場合はお客様ご負担（不具合等は商品到着後8日以内にご連絡ください）",
 };
 
 /**
@@ -92,8 +92,14 @@ export function generateTokushoHtml(
   // 返品ポリシー
   let returnPolicyText = "";
   if (returnPolicy === "NO_RETURN") {
-    returnPolicyText = `
-      <p>商品の性質上、原則として返品・交換はお受けしておりません。<br>
+    // デジタル/ダウンロード商品では物理商品前提の文言が成立しないため切り替える
+    returnPolicyText = config.sellsDigital
+      ? `
+      <p>商品の性質上（デジタルコンテンツ／ダウンロード商品のため）、提供開始後の返品・返金はお受けできません。<br>
+      ただし、ダウンロードや動作に不具合がある場合は、購入後8日以内にご連絡ください。状況を確認のうえ対応いたします。</p>
+    `
+      : `
+      <p>商品の性質上、原則として返品・交換はお受けしておりません（法令に基づく場合を除く）。<br>
       ただし、商品の破損・汚損・誤送等、当店の不備による場合は、商品到着後8日以内にご連絡ください。<br>
       返送料は当店が負担いたします。</p>
     `;
@@ -128,6 +134,12 @@ export function generateTokushoHtml(
   const safeContact = escapeHtml(contactNote);
   const safeApplicationPeriod = escapeHtml(applicationPeriod);
   const safeContractLiability = escapeHtml(contractLiability);
+  // 申込みの有効期限は必須表示項目のため常に表示する。未入力時は既定文を出す。
+  const applicationPeriodText =
+    safeApplicationPeriod ||
+    (config.sellsSubscription
+      ? "契約は所定の周期で自動更新されます。解約は次回更新日の前日までにお手続きください。"
+      : "特に定めはありません（在庫がある限り有効）。");
 
   // 事業者情報の行を組み立てる
   // 法人: 法人名 + 代表者名、個人: 販売業者名。通信販売責任者は種別に関わらず入力があれば表示。
@@ -171,7 +183,7 @@ export function generateTokushoHtml(
     </tr>
     <tr><th>お支払い時期</th><td>${safePaymentTiming}</td></tr>
     <tr><th>商品のお届け</th><td>${safeDeliveryTiming}</td></tr>
-    ${safeApplicationPeriod ? `<tr><th>申込みの有効期限</th><td>${safeApplicationPeriod}</td></tr>` : ""}
+    <tr><th>申込みの有効期限</th><td>${applicationPeriodText}</td></tr>
 
     <tr>
       <th>返品・交換について</th>
