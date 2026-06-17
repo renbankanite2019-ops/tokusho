@@ -293,6 +293,22 @@ export default function Preview() {
                   }}
                 />
               </Box>
+
+              {/* プレビュー確認後にも公開できるよう、下部にもボタンを配置 */}
+              <InlineStack align="end">
+                <Form method="post">
+                  <Button
+                    variant="primary"
+                    submit
+                    loading={isPublishing}
+                    size="large"
+                  >
+                    {config.isPublished
+                      ? "ページを更新して公開する"
+                      : "ストアに公開する"}
+                  </Button>
+                </Form>
+              </InlineStack>
             </BlockStack>
           </Card>
         </Layout.Section>
