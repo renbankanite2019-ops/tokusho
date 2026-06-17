@@ -51,6 +51,12 @@ export function generateTokushoHtml(
   const minimal = design && config.templateStyle === "minimal";
   const cellBorder = minimal ? "none" : "1px solid #ddd";
   const rowBorder = minimal ? "1px solid #eee" : "1px solid #ddd";
+  // 日英併記（Basicプラン以上 + bilingual=true のとき項目名に英語を併記）
+  const bil = design && config.bilingual === true;
+  const L = (ja: string, en: string) =>
+    bil
+      ? `${ja}<br><small style="font-weight:normal;color:#888;">${en}</small>`
+      : ja;
   const {
     businessType,
     sellerName,
@@ -157,11 +163,11 @@ export function generateTokushoHtml(
   // 法人: 法人名 + 代表者名、個人: 販売業者名。通信販売責任者は種別に関わらず入力があれば表示。
   const businessRows =
     businessType === "CORPORATION"
-      ? `<tr><th>販売業者（法人名）</th><td>${safeSellerName}</td></tr>
-      ${safeRepName ? `<tr><th>代表者名</th><td>${safeRepName}</td></tr>` : ""}`
-      : `<tr><th>販売業者</th><td>${safeSellerName}</td></tr>`;
+      ? `<tr><th>${L("販売業者（法人名）", "Seller (Company)")}</th><td>${safeSellerName}</td></tr>
+      ${safeRepName ? `<tr><th>${L("代表者名", "Representative")}</th><td>${safeRepName}</td></tr>` : ""}`
+      : `<tr><th>${L("販売業者", "Seller")}</th><td>${safeSellerName}</td></tr>`;
   const businessInfo = `${businessRows}
-      ${safeRespName ? `<tr><th>通信販売責任者</th><td>${safeRespName}</td></tr>` : ""}`;
+      ${safeRespName ? `<tr><th>${L("通信販売責任者", "Person in charge")}</th><td>${safeRespName}</td></tr>` : ""}`;
 
   // 最終更新日は実際の公開/更新日時を表示する（プレビューのたびに変わらないようにする）
   const updatedSource = config.lastPublishedAt ?? config.updatedAt ?? null;
@@ -177,38 +183,38 @@ export function generateTokushoHtml(
 
   <table class="tokusho-table">
     ${businessInfo}
-    <tr><th>所在地</th><td>${escapeHtml(fullAddress)}</td></tr>
-    <tr><th>電話番号</th><td>${safePhone}</td></tr>
+    <tr><th>${L("所在地", "Address")}</th><td>${escapeHtml(fullAddress)}</td></tr>
+    <tr><th>${L("電話番号", "Phone")}</th><td>${safePhone}</td></tr>
     <tr>
-      <th>メールアドレス</th>
+      <th>${L("メールアドレス", "Email")}</th>
       <td><a href="mailto:${safeEmail}">${safeEmail}</a></td>
     </tr>
-    ${safeWebsite ? `<tr><th>ウェブサイト</th><td><a href="${safeWebsite}">${safeWebsite}</a></td></tr>` : ""}
+    ${safeWebsite ? `<tr><th>${L("ウェブサイト", "Website")}</th><td><a href="${safeWebsite}">${safeWebsite}</a></td></tr>` : ""}
 
-    <tr><th>販売価格</th><td>${safeSalesPrice}${/税/.test(salesPrice) ? "" : "（税込）"}</td></tr>
-    <tr><th>送料</th><td>${safeShippingFee}</td></tr>
-    ${safeOtherCosts ? `<tr><th>商品代金以外の費用</th><td>${safeOtherCosts}</td></tr>` : ""}
+    <tr><th>${L("販売価格", "Price")}</th><td>${safeSalesPrice}${/税/.test(salesPrice) ? "" : "（税込）"}</td></tr>
+    <tr><th>${L("送料", "Shipping")}</th><td>${safeShippingFee}</td></tr>
+    ${safeOtherCosts ? `<tr><th>${L("商品代金以外の費用", "Other fees")}</th><td>${safeOtherCosts}</td></tr>` : ""}
 
     <tr>
-      <th>お支払い方法</th>
+      <th>${L("お支払い方法", "Payment methods")}</th>
       <td><ul>${paymentList}</ul></td>
     </tr>
-    <tr><th>お支払い時期</th><td>${safePaymentTiming}</td></tr>
-    <tr><th>商品のお届け</th><td>${safeDeliveryTiming}</td></tr>
-    <tr><th>申込みの有効期限</th><td>${applicationPeriodText}</td></tr>
+    <tr><th>${L("お支払い時期", "Payment timing")}</th><td>${safePaymentTiming}</td></tr>
+    <tr><th>${L("商品のお届け", "Delivery")}</th><td>${safeDeliveryTiming}</td></tr>
+    <tr><th>${L("申込みの有効期限", "Offer validity period")}</th><td>${applicationPeriodText}</td></tr>
 
     <tr>
-      <th>返品・交換について</th>
+      <th>${L("返品・交換について", "Returns & exchanges")}</th>
       <td>${returnPolicyText}</td>
     </tr>
-    ${safeContractLiability ? `<tr><th>契約不適合責任</th><td>${safeContractLiability}</td></tr>` : ""}
+    ${safeContractLiability ? `<tr><th>${L("契約不適合責任", "Liability for non-conformity")}</th><td>${safeContractLiability}</td></tr>` : ""}
 
-    ${safeSoftware ? `<tr><th>動作環境</th><td>${safeSoftware}</td></tr>` : ""}
-    ${safeSubscription ? `<tr><th>継続契約について</th><td>${safeSubscription}</td></tr>` : ""}
-    ${safeSpecial ? `<tr><th>特別な販売条件</th><td>${safeSpecial}</td></tr>` : ""}
+    ${safeSoftware ? `<tr><th>${L("動作環境", "System requirements")}</th><td>${safeSoftware}</td></tr>` : ""}
+    ${safeSubscription ? `<tr><th>${L("継続契約について", "Subscription terms")}</th><td>${safeSubscription}</td></tr>` : ""}
+    ${safeSpecial ? `<tr><th>${L("特別な販売条件", "Special conditions")}</th><td>${safeSpecial}</td></tr>` : ""}
 
     <tr>
-      <th>お問い合わせ</th>
+      <th>${L("お問い合わせ", "Contact")}</th>
       <td>
         ${safeContact || "ご不明な点は下記までお気軽にお問い合わせください。"}<br>
         <strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a><br>

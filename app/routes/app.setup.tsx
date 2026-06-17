@@ -96,6 +96,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     contactNote: (formData.get("contactNote") as string) || null,
     accentColor: (formData.get("accentColor") as string) || "#008060",
     templateStyle: (formData.get("templateStyle") as string) || "table",
+    bilingual: formData.get("bilingual") === "on",
   };
 
   const errors = validateConfig(data);
@@ -138,6 +139,7 @@ export default function Setup() {
   const [templateStyle, setTemplateStyle] = useState<string[]>([
     config?.templateStyle || "table",
   ]);
+  const [bilingual, setBilingual] = useState(config?.bilingual ?? false);
 
   // TextField の入力状態（Polaris v13 は controlled が必須）
   const [fields, setFields] = useState({
@@ -188,6 +190,7 @@ export default function Setup() {
           <input type="hidden" name="sellsSubscription" value="on" />
         )}
         <input type="hidden" name="templateStyle" value={templateStyle[0]} />
+        {bilingual && <input type="hidden" name="bilingual" value="on" />}
 
         <Layout>
           {actionData?.errors && (
@@ -574,6 +577,12 @@ export default function Setup() {
                     ]}
                     selected={templateStyle}
                     onChange={setTemplateStyle}
+                  />
+                  <Checkbox
+                    label="日英併記（項目名に英語を併記）"
+                    checked={bilingual}
+                    onChange={setBilingual}
+                    helpText="海外のお客様向けに項目名を英語でも表示します"
                   />
                 </FormLayout>
               </BlockStack>
