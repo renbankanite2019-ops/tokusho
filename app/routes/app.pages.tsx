@@ -20,8 +20,7 @@ import {
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
-import { PLANS } from "../lib/plans";
-import { isTestBilling } from "../lib/billing";
+import { getPlanStatus } from "../lib/billing";
 import {
   PAGE_TYPES,
   PAGE_TYPE_LIST,
@@ -30,21 +29,9 @@ import {
   renderCustomPageHtml,
 } from "../lib/customPageTemplate";
 
-const isProName = (name: string | null | undefined) => name === PLANS.PRO;
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
-  const isTest = isTestBilling();
-  let isPro = false;
-  try {
-    const { hasActivePayment, appSubscriptions } = await billing.check({
-      plans: [PLANS.PRO],
-      isTest,
-    });
-    isPro = hasActivePayment && isProName(appSubscriptions[0]?.name);
-  } catch (e) {
-    console.error("[pages loader] billing.check failed:", e);
-  }
+  const { isPro } = await getPlanStatus(billing);
 
   const [shopConfig, rows] = await Promise.all([
     prisma.shopConfig.findUnique({ where: { shop: session.shop } }),
@@ -67,17 +54,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin, billing } = await authenticate.admin(request);
-  const isTest = isTestBilling();
-  let isPro = false;
-  try {
-    const { hasActivePayment, appSubscriptions } = await billing.check({
-      plans: [PLANS.PRO],
-      isTest,
-    });
-    isPro = hasActivePayment && isProName(appSubscriptions[0]?.name);
-  } catch (e) {
-    console.error("[pages action] billing.check failed:", e);
-  }
+  const { isPro } = await getPlanStatus(billing);
   if (!isPro) {
     return json({ error: "追加ページの作成はProプラン限定の機能です。" }, { status: 403 });
   }

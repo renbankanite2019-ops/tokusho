@@ -20,8 +20,7 @@ import {
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
 import { generateTokushoHtml } from "../lib/tokushoTemplate";
-import { PLANS } from "../lib/plans";
-import { isTestBilling } from "../lib/billing";
+import { getPlanStatus } from "../lib/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
@@ -33,18 +32,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect("/app/setup");
   }
 
-  // 有料プランのみウォーターマークを非表示にする（実際の課金状態で判定）
-  const isTest = isTestBilling();
-  let hasActivePayment = false;
-  try {
-    ({ hasActivePayment } = await billing.check({ plans: [PLANS.BASIC, PLANS.PRO], isTest }));
-  } catch (e) {
-    console.error("[preview loader] billing.check failed:", e);
-  }
+  // 有料プラン（Basic以上）でウォーターマーク非表示＋デザイン反映
+  const { isPaid } = await getPlanStatus(billing);
 
   const html = generateTokushoHtml(config as any, {
-    hideWatermark: hasActivePayment,
-    applyDesign: hasActivePayment,
+    hideWatermark: isPaid,
+    applyDesign: isPaid,
   });
   return json({ config, html });
 };
@@ -60,19 +53,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ error: "設定が見つかりません" }, { status: 400 });
   }
 
-  const isTest = isTestBilling();
-  let hasActivePayment = false;
-  try {
-    ({ hasActivePayment } = await billing.check({ plans: [PLANS.BASIC, PLANS.PRO], isTest }));
-  } catch (e) {
-    console.error("[preview action] billing.check failed:", e);
-  }
+  const { isPaid } = await getPlanStatus(billing);
 
   // 公開時刻を確定し、その時刻を「最終更新日」として埋め込む
   const publishedAt = new Date();
   const html = generateTokushoHtml(
     { ...config, lastPublishedAt: publishedAt } as any,
-    { hideWatermark: hasActivePayment, applyDesign: hasActivePayment }
+    { hideWatermark: isPaid, applyDesign: isPaid }
   );
 
   // Shopify Pages API でページを作成/更新
