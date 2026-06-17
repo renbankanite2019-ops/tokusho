@@ -147,6 +147,8 @@ const PLAN_DETAILS = [
     features: [
       "Freeプランのすべての機能",
       "「Powered by Tokusho」表示を削除",
+      "デザインカスタマイズ（アクセントカラー・レイアウト）",
+      "日英併記（特商法ページ）",
       "メールサポート",
     ],
     limitations: [],
@@ -162,6 +164,7 @@ const PLAN_DETAILS = [
     features: [
       "Basicプランのすべての機能",
       "プライバシーポリシー生成・公開",
+      "追加ページ生成（会社概要・お問い合わせ・返品ポリシー）",
       "優先サポート",
     ],
     limitations: [],
