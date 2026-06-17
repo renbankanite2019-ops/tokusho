@@ -297,7 +297,7 @@ export default function Preview() {
           </Card>
         </Layout.Section>
 
-        <Layout.Section variant="oneThird">
+        <Layout.Section>
           <Card>
             <BlockStack gap="300">
               <Text as="h2" variant="headingMd">
