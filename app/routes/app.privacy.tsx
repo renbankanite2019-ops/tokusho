@@ -153,6 +153,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     let pageUrl = privacy.pageUrl;
 
     try {
+      // ストアに同じハンドルのページが既にあれば再利用する（ハンドル重複エラー防止）
+      if (!pageId) {
+        const lookup = await admin.graphql(
+          `#graphql
+          query { pages(first: 100) { nodes { id handle } } }`
+        );
+        const lookupData = await lookup.json();
+        const existing = (lookupData.data?.pages?.nodes ?? []).find(
+          (n: any) => n.handle === "privacy-policy"
+        );
+        if (existing) pageId = existing.id;
+      }
+
       if (pageId) {
         const res = await admin.graphql(
           `#graphql

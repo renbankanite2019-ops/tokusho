@@ -79,6 +79,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   let pageUrl = config.pageUrl;
 
   try {
+    // DBにpageIdが無くても、ストアに同じハンドルのページが既にあれば再利用する。
+    // （DB移行などでpageIdが失われても「ハンドル重複」エラーを防ぐ）
+    if (!pageId) {
+      const lookup = await admin.graphql(
+        `#graphql
+        query { pages(first: 100) { nodes { id handle } } }`
+      );
+      const lookupData = await lookup.json();
+      const existing = (lookupData.data?.pages?.nodes ?? []).find(
+        (n: any) => n.handle === "tokushoho"
+      );
+      if (existing) pageId = existing.id;
+    }
+
     if (pageId) {
       // 既存ページを更新
       const updateResponse = await admin.graphql(
