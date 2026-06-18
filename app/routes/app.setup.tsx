@@ -19,6 +19,8 @@ import {
   ChoiceList,
   Checkbox,
   FormLayout,
+  Select,
+  Box,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
@@ -50,12 +52,155 @@ const RETURN_SHIPPING_OPTIONS = [
   },
 ];
 
+// 自由入力だった項目を「よく使う選択肢＋自由入力」に置き換える（Excel感をなくす）。
+// value がそのまま特商法ページに表示される文言になる。
+const DELIVERY_PRESETS = [
+  { label: "ご注文確認後3〜5営業日以内に発送", value: "ご注文確認後3〜5営業日以内に発送いたします。" },
+  { label: "ご注文確認後7日以内に発送", value: "ご注文確認後7日以内に発送いたします。" },
+  { label: "ご注文確認後2週間以内に発送", value: "ご注文確認後2週間以内に発送いたします。" },
+  { label: "ご決済後すぐに利用可能（デジタル商品）", value: "ご決済確認後、即時にダウンロード／ご利用いただけます。" },
+  { label: "在庫状況により異なる（商品ページに記載）", value: "在庫状況により異なります。詳細は各商品ページに記載しております。" },
+];
+
+const PAYMENT_TIMING_PRESETS = [
+  { label: "カードは注文時／コンビニ・振込は注文後3日以内", value: "クレジットカードは注文時に決済が確定します。コンビニ払い・銀行振込はご注文後3日以内にお支払いください。" },
+  { label: "ご注文時にすべて即時決済", value: "ご注文時に即時決済されます。" },
+  { label: "各お支払い方法の規定に従う", value: "各お支払い方法の規定に従います。" },
+];
+
+const RETURN_CONDITION_PRESETS = [
+  { label: "未使用・未開封のもの", value: "未使用・未開封のもの" },
+  { label: "未使用・未開封で、到着後8日以内にご連絡いただいたもの", value: "未使用・未開封で、商品到着後8日以内にご連絡いただいたもの" },
+  { label: "タグ・付属品が揃った未使用のもの", value: "タグ・付属品が揃った未使用のもの" },
+];
+
+const CONTRACT_LIABILITY_PRESETS = [
+  { label: "不良・欠陥時は当店負担で交換／返金（到着後8日以内連絡）", value: "商品に欠陥・不良があった場合は、商品到着後8日以内にご連絡いただければ、当店負担で交換または返金いたします。" },
+  { label: "注文と異なる・不良品は送料当店負担で交換", value: "お届けした商品が注文内容と異なる場合や不良品であった場合は、送料当店負担にて良品と交換いたします。" },
+];
+
+// クイック設定：販売形態を選ぶと関連項目を自動でセットする
+const SALES_TYPES = [
+  { label: "物理商品（個人事業主）", value: "ind_physical" },
+  { label: "物理商品（法人）", value: "corp_physical" },
+  { label: "デジタル商品（ダウンロード・ソフト等）", value: "digital" },
+  { label: "サブスク・定期購入", value: "subscription" },
+];
+
+/**
+ * 「よく使う選択肢から選ぶ／自由入力する」を切り替えられる入力欄。
+ * value が presets のいずれかに一致すればプルダウン選択、しなければ自由入力モード。
+ * 解決後の文字列を hidden input で送信するので action 側の処理は変更不要。
+ */
+function PresetField({
+  label,
+  name,
+  value,
+  onChange,
+  presets,
+  helpText,
+  multiline = 2,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (v: string) => void;
+  presets: { label: string; value: string }[];
+  helpText?: string;
+  multiline?: number;
+}) {
+  const isPreset = presets.some((p) => p.value === value);
+  const selectValue = isPreset ? value : "__custom__";
+  const options = [
+    ...presets,
+    { label: "✏️ 自由に入力する", value: "__custom__" },
+  ];
+  return (
+    <BlockStack gap="200">
+      {/* 解決後の値を送信 */}
+      <input type="hidden" name={name} value={value} />
+      <Select
+        label={label}
+        options={options}
+        value={selectValue}
+        onChange={(v) => onChange(v === "__custom__" ? "" : v)}
+        helpText={selectValue === "__custom__" ? undefined : helpText}
+      />
+      {selectValue === "__custom__" && (
+        <TextField
+          label={label}
+          labelHidden
+          value={value}
+          onChange={onChange}
+          autoComplete="off"
+          multiline={multiline}
+          placeholder="内容を入力してください"
+          helpText={helpText}
+        />
+      )}
+    </BlockStack>
+  );
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const config = await prisma.shopConfig.findUnique({
     where: { shop: session.shop },
   });
-  return json({ config });
+
+  // Shopifyストアの設定から事業者情報の下書きを取得する（Excelには真似できない自動入力）。
+  // 取得に失敗してもフォームは表示できるよう、エラーは握りつぶして prefill=null とする。
+  let prefill: {
+    sellerName: string;
+    postalCode: string;
+    prefecture: string;
+    address: string;
+    buildingName: string;
+    phone: string;
+    email: string;
+    websiteUrl: string;
+  } | null = null;
+  try {
+    const res = await admin.graphql(
+      `#graphql
+      query shopInfo {
+        shop {
+          name
+          email
+          contactEmail
+          billingAddress {
+            address1
+            address2
+            city
+            province
+            zip
+            phone
+            company
+          }
+          primaryDomain { url }
+        }
+      }`
+    );
+    const d = await res.json();
+    const s = d.data?.shop;
+    if (s) {
+      const a = s.billingAddress ?? {};
+      prefill = {
+        sellerName: s.name || a.company || "",
+        postalCode: a.zip || "",
+        prefecture: a.province || "",
+        address: [a.city, a.address1].filter(Boolean).join(" "),
+        buildingName: a.address2 || "",
+        phone: a.phone || "",
+        email: s.contactEmail || s.email || "",
+        websiteUrl: s.primaryDomain?.url || "",
+      };
+    }
+  } catch (e) {
+    console.error("[setup] shop info fetch failed:", e);
+  }
+
+  return json({ config, prefill });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -114,10 +259,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Setup() {
-  const { config } = useLoaderData<typeof loader>();
+  const { config, prefill } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+
+  // 初回設定（config が無い）のときだけ Shopify 設定の下書きを初期値に使う。
+  const pf = config ? null : prefill;
 
   // ChoiceList の選択状態
   const [businessType, setBusinessType] = useState<string[]>([
@@ -140,28 +288,31 @@ export default function Setup() {
     config?.templateStyle || "table",
   ]);
   const [bilingual, setBilingual] = useState(config?.bilingual ?? false);
+  // クイック設定（販売形態）の選択状態
+  const [salesType, setSalesType] = useState<string[]>([]);
 
   // TextField の入力状態（Polaris v13 は controlled が必須）
+  // 連絡先系は初回のみ Shopify 設定（pf）を初期値にフォールバックする。
   const [fields, setFields] = useState({
-    sellerName: config?.sellerName || "",
+    sellerName: config?.sellerName || pf?.sellerName || "",
     representativeName: config?.representativeName || "",
     responsibleName: config?.responsibleName || "",
-    postalCode: config?.postalCode || "",
-    prefecture: config?.prefecture || "",
-    address: config?.address || "",
-    buildingName: config?.buildingName || "",
-    phone: config?.phone || "",
-    email: config?.email || "",
-    websiteUrl: config?.websiteUrl || "",
+    postalCode: config?.postalCode || pf?.postalCode || "",
+    prefecture: config?.prefecture || pf?.prefecture || "",
+    address: config?.address || pf?.address || "",
+    buildingName: config?.buildingName || pf?.buildingName || "",
+    phone: config?.phone || pf?.phone || "",
+    email: config?.email || pf?.email || "",
+    websiteUrl: config?.websiteUrl || pf?.websiteUrl || "",
     salesPrice: config?.salesPrice || "各商品ページに記載",
     shippingFee: config?.shippingFee || "全国一律500円（税込）",
     otherCosts: config?.otherCosts || "",
     applicationPeriod: config?.applicationPeriod || "",
-    contractLiability: config?.contractLiability || "",
-    paymentTiming: config?.paymentTiming || "クレジットカード：注文時決済。コンビニ払い：注文後3日以内",
-    deliveryTiming: config?.deliveryTiming || "ご注文確認後3〜5営業日以内に発送",
+    contractLiability: config?.contractLiability || CONTRACT_LIABILITY_PRESETS[0].value,
+    paymentTiming: config?.paymentTiming || PAYMENT_TIMING_PRESETS[0].value,
+    deliveryTiming: config?.deliveryTiming || DELIVERY_PRESETS[0].value,
     returnDeadline: config?.returnDeadline || "商品到着後8日以内",
-    returnCondition: config?.returnCondition || "未使用・未開封のもの",
+    returnCondition: config?.returnCondition || RETURN_CONDITION_PRESETS[0].value,
     returnNote: config?.returnNote || "",
     softwareRequirements: config?.softwareRequirements || "",
     subscriptionTerms: config?.subscriptionTerms || "",
@@ -171,6 +322,43 @@ export default function Setup() {
   });
   const setField = (key: keyof typeof fields) => (value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
+
+  // 販売形態を選ぶと関連項目をまとめてセットする（読むだけで設定が終わる）。
+  const applySalesType = (selected: string[]) => {
+    setSalesType(selected);
+    const v = selected[0];
+    if (v === "ind_physical" || v === "corp_physical") {
+      setBusinessType([v === "corp_physical" ? "CORPORATION" : "INDIVIDUAL"]);
+      setSellsDigital(false);
+      setSellsSubscription(false);
+      setReturnPolicy(["STANDARD"]);
+      setField("deliveryTiming")(DELIVERY_PRESETS[0].value);
+    } else if (v === "digital") {
+      setSellsDigital(true);
+      setSellsSubscription(false);
+      setReturnPolicy(["NO_RETURN"]);
+      setField("deliveryTiming")(DELIVERY_PRESETS[3].value); // 即時利用
+    } else if (v === "subscription") {
+      setSellsSubscription(true);
+      setReturnPolicy(["STANDARD"]);
+    }
+  };
+
+  // Shopify ストア設定から連絡先を取り込む（いつでも再取込可能）。
+  const importFromShopify = () => {
+    if (!prefill) return;
+    setFields((prev) => ({
+      ...prev,
+      sellerName: prefill.sellerName || prev.sellerName,
+      postalCode: prefill.postalCode || prev.postalCode,
+      prefecture: prefill.prefecture || prev.prefecture,
+      address: prefill.address || prev.address,
+      buildingName: prefill.buildingName || prev.buildingName,
+      phone: prefill.phone || prev.phone,
+      email: prefill.email || prev.email,
+      websiteUrl: prefill.websiteUrl || prev.websiteUrl,
+    }));
+  };
 
   return (
     <Page
@@ -204,6 +392,42 @@ export default function Setup() {
               </Banner>
             </Layout.Section>
           )}
+
+          {/* 0. クイック設定 */}
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">
+                  かんたん設定
+                </Text>
+                <Text as="p" variant="bodyMd" tone="subdued">
+                  販売形態を選ぶと、関連する項目を自動でセットし、不要な欄を省きます。
+                  あとは内容を確認するだけで完成します。
+                </Text>
+                <ChoiceList
+                  title="販売形態（任意）"
+                  titleHidden
+                  choices={SALES_TYPES}
+                  selected={salesType}
+                  onChange={applySalesType}
+                />
+                {prefill && (
+                  <Box
+                    background="bg-surface-secondary"
+                    padding="300"
+                    borderRadius="200"
+                  >
+                    <InlineStack align="space-between" blockAlign="center" gap="300">
+                      <Text as="p" variant="bodyMd">
+                        🏪 Shopifyストアの設定から事業者名・住所・電話・メールを自動入力できます。
+                      </Text>
+                      <Button onClick={importFromShopify}>Shopify設定から取込む</Button>
+                    </InlineStack>
+                  </Box>
+                )}
+              </BlockStack>
+            </Card>
+          </Layout.Section>
 
           {/* 1. 事業者情報 */}
           <Layout.Section>
@@ -381,22 +605,20 @@ export default function Setup() {
                     allowMultiple
                   />
 
-                  <TextField
+                  <PresetField
                     label="お支払い時期"
                     name="paymentTiming"
                     value={fields.paymentTiming}
                     onChange={setField("paymentTiming")}
-                    autoComplete="off"
-                    multiline={2}
+                    presets={PAYMENT_TIMING_PRESETS}
                   />
 
-                  <TextField
+                  <PresetField
                     label="商品の引渡し時期"
                     name="deliveryTiming"
                     value={fields.deliveryTiming}
                     onChange={setField("deliveryTiming")}
-                    autoComplete="off"
-                    multiline={2}
+                    presets={DELIVERY_PRESETS}
                   />
 
                   <TextField
@@ -441,13 +663,12 @@ export default function Setup() {
                         autoComplete="off"
                       />
 
-                      <TextField
+                      <PresetField
                         label="返品・交換条件"
                         name="returnCondition"
                         value={fields.returnCondition}
                         onChange={setField("returnCondition")}
-                        autoComplete="off"
-                        multiline={2}
+                        presets={RETURN_CONDITION_PRESETS}
                       />
 
                       <ChoiceList
@@ -469,13 +690,12 @@ export default function Setup() {
                     helpText="セール品・カスタム品の返品不可など"
                   />
 
-                  <TextField
+                  <PresetField
                     label="契約不適合責任"
                     name="contractLiability"
                     value={fields.contractLiability}
                     onChange={setField("contractLiability")}
-                    autoComplete="off"
-                    multiline={2}
+                    presets={CONTRACT_LIABILITY_PRESETS}
                     helpText="届いた商品が注文と異なる・欠陥がある場合の対応。責任を免除・限定する場合は明記が必要です"
                   />
                 </FormLayout>
