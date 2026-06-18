@@ -33,7 +33,7 @@ const SHIPPING_BURDEN_LABELS: Record<string, string> = {
 /**
  * 特定商取引法に基づく表記ページのHTMLを生成する
  * 消費者庁ガイドライン 法第11条 広告の表示事項に基づく
- * 出典: https://www.no-trouble.caa.go.jp/what/mailorder/
+ * 出典: https://www.no-trouble.caa.go.jp/what/mailorder/advertising.html
  */
 export function generateTokushoHtml(
   config: ShopConfig,

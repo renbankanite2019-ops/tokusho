@@ -65,4 +65,4 @@ tokusho/
 
 - このアプリが生成するページの法的正確性は利用者が確認してください
 - 特商法の要件は変更される場合があります。消費者庁のガイドを定期的に確認してください
-- 出典: https://www.no-trouble.caa.go.jp/what/mailorder/
+- 出典: https://www.no-trouble.caa.go.jp/what/mailorder/advertising.html

@@ -508,7 +508,7 @@ export default function Index() {
                     <List.Item>代表者名（法人の場合）</List.Item>
                   </List>
                   <Button
-                    url="https://www.no-trouble.caa.go.jp/what/mailorder/"
+                    url="https://www.no-trouble.caa.go.jp/what/mailorder/advertising.html"
                     external
                     variant="plain"
                   >
