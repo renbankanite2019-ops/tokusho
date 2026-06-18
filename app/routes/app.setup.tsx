@@ -79,17 +79,17 @@ const CONTRACT_LIABILITY_PRESETS = [
   { label: "注文と異なる・不良品は送料当店負担で交換", value: "お届けした商品が注文内容と異なる場合や不良品であった場合は、送料当店負担にて良品と交換いたします。" },
 ];
 
-// アクセントカラーのプリセット（ユーザーは色名を知らなくても選べる）
+// アクセントカラーのプリセット（落ち着いた中間色。白文字でも読めるトーン）
 const PRESET_COLORS = [
-  { label: "グリーン", value: "#008060" },
-  { label: "ネイビー", value: "#1f3a5f" },
-  { label: "ブルー", value: "#2563eb" },
-  { label: "ティール", value: "#0891b2" },
-  { label: "パープル", value: "#7c3aed" },
-  { label: "ピンク", value: "#db2777" },
-  { label: "レッド", value: "#dc2626" },
-  { label: "オレンジ", value: "#d97706" },
-  { label: "ブラック", value: "#1a1a1a" },
+  { label: "セージグリーン", value: "#5f7d6e" },
+  { label: "スレートブルー", value: "#566784" },
+  { label: "ダスティティール", value: "#4f7d7a" },
+  { label: "モーヴ", value: "#7a6a82" },
+  { label: "ダスティローズ", value: "#9c6b72" },
+  { label: "テラコッタ", value: "#a9745c" },
+  { label: "オリーブ", value: "#717c54" },
+  { label: "グレー", value: "#6b7280" },
+  { label: "チャコール", value: "#3f4756" },
 ];
 
 // クイック設定：販売形態を選ぶと関連項目を自動でセットする
@@ -112,7 +112,7 @@ function ColorField({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const normalized = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#008060";
+  const normalized = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#5f7d6e";
   return (
     <BlockStack gap="200">
       <input type="hidden" name="accentColor" value={value} />
@@ -190,7 +190,7 @@ function ColorField({
             }}
           />
           <code style={{ fontSize: 12, color: "#6b7280" }}>
-            {value || "#008060"}
+            {value || "#5f7d6e"}
           </code>
         </span>
       </InlineStack>
@@ -455,7 +455,7 @@ export default function Setup() {
     subscriptionTerms: config?.subscriptionTerms || "",
     specialConditions: config?.specialConditions || "",
     contactNote: config?.contactNote || "",
-    accentColor: config?.accentColor || "#008060",
+    accentColor: config?.accentColor || "#5f7d6e",
   });
   const setField = (key: keyof typeof fields) => (value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
