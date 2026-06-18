@@ -200,7 +200,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("[setup] shop info fetch failed:", e);
   }
 
-  return json({ config, prefill });
+  // ストアの商品から販売形態を推測する（デジタル商品・サブスクの有無）。
+  // read_products スコープが無い場合は失敗するが、フォームには影響させない。
+  let detected = { digital: false, subscription: false };
+  try {
+    const res = await admin.graphql(
+      `#graphql
+      query detectTypes {
+        products(first: 30) {
+          nodes { variants(first: 1) { nodes { requiresShipping } } }
+        }
+        sellingPlanGroups(first: 1) { nodes { id } }
+      }`
+    );
+    const d = await res.json();
+    const nodes = d.data?.products?.nodes ?? [];
+    const digitalCount = nodes.filter(
+      (p: any) => p.variants?.nodes?.[0]?.requiresShipping === false
+    ).length;
+    detected = {
+      digital: nodes.length > 0 && digitalCount > 0,
+      subscription: (d.data?.sellingPlanGroups?.nodes?.length ?? 0) > 0,
+    };
+  } catch (e) {
+    console.error("[setup] product detection failed (read_products scope?):", e);
+  }
+
+  return json({ config, prefill, detected });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -259,7 +285,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Setup() {
-  const { config, prefill } = useLoaderData<typeof loader>();
+  const { config, prefill, detected } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -360,6 +386,27 @@ export default function Setup() {
     }));
   };
 
+  // リアルタイムの表示チェック（特商法で求められる項目の抜け漏れを入力中に警告する）。
+  const liveWarnings: string[] = [];
+  if (!fields.sellerName.trim()) liveWarnings.push("販売業者名が未入力です（必須）");
+  if (!fields.address.trim()) liveWarnings.push("所在地が未入力です（必須）");
+  if (!fields.phone.trim()) liveWarnings.push("電話番号が未入力です（必須）");
+  if (!fields.email.trim()) liveWarnings.push("メールアドレスが未入力です（必須）");
+  if (businessType[0] === "CORPORATION" && !fields.representativeName.trim())
+    liveWarnings.push("法人の場合は代表者名の記載が必要です");
+  if (paymentMethods.length === 0)
+    liveWarnings.push("お支払い方法を1つ以上選択してください");
+  if (sellsDigital && !fields.softwareRequirements.trim())
+    liveWarnings.push("デジタル商品の動作環境（対応OS・ブラウザ等）が未入力です");
+  if (sellsSubscription && !fields.subscriptionTerms.trim())
+    liveWarnings.push("継続課金の解約方法・契約期間・課金サイクルの記載が必要です");
+  if (returnPolicy[0] === "NO_RETURN" && !fields.returnNote.trim())
+    liveWarnings.push("返品不可の場合は、その旨と理由を明記することが推奨されます");
+
+  // 推測した販売形態のうち、まだ反映されていないものだけ提案する。
+  const suggestDigital = detected.digital && !sellsDigital;
+  const suggestSubscription = detected.subscription && !sellsSubscription;
+
   return (
     <Page
       title="事業者情報を入力"
@@ -411,6 +458,32 @@ export default function Setup() {
                   selected={salesType}
                   onChange={applySalesType}
                 />
+                {(suggestDigital || suggestSubscription) && (
+                  <Banner tone="info">
+                    <BlockStack gap="200">
+                      {suggestDigital && (
+                        <InlineStack align="space-between" blockAlign="center" gap="300">
+                          <Text as="p" variant="bodyMd">
+                            🔍 ストアにデジタル商品（配送不要）が見つかりました。
+                          </Text>
+                          <Button onClick={() => applySalesType(["digital"])}>
+                            デジタル商品に設定
+                          </Button>
+                        </InlineStack>
+                      )}
+                      {suggestSubscription && (
+                        <InlineStack align="space-between" blockAlign="center" gap="300">
+                          <Text as="p" variant="bodyMd">
+                            🔍 サブスク（定期購入）の設定が見つかりました。
+                          </Text>
+                          <Button onClick={() => applySalesType(["subscription"])}>
+                            サブスクに設定
+                          </Button>
+                        </InlineStack>
+                      )}
+                    </BlockStack>
+                  </Banner>
+                )}
                 {prefill && (
                   <Box
                     background="bg-surface-secondary"
@@ -805,6 +878,30 @@ export default function Setup() {
                     helpText="海外のお客様向けに項目名を英語でも表示します"
                   />
                 </FormLayout>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+
+          {/* 表示チェック（リアルタイム） */}
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="300">
+                <Text as="h2" variant="headingMd">
+                  表示チェック
+                </Text>
+                {liveWarnings.length === 0 ? (
+                  <Text as="p" tone="success">
+                    ✅ 特商法で求められる必須項目はすべて入力されています。
+                  </Text>
+                ) : (
+                  <BlockStack gap="100">
+                    {liveWarnings.map((w, i) => (
+                      <Text as="p" key={i} tone="caution" variant="bodyMd">
+                        ⚠️ {w}
+                      </Text>
+                    ))}
+                  </BlockStack>
+                )}
               </BlockStack>
             </Card>
           </Layout.Section>

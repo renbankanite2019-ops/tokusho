@@ -1,5 +1,9 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import {
+  json,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from "@remix-run/node";
+import { useLoaderData, useActionData, Form, useNavigation } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -17,26 +21,178 @@ import {
 import { CheckCircleIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
-import { validateConfig } from "../lib/tokushoTemplate";
+import { generateTokushoHtml, validateConfig } from "../lib/tokushoTemplate";
+import { generatePrivacyHtml } from "../lib/privacyTemplate";
+import {
+  PAGE_TYPES,
+  PAGE_TYPE_LIST,
+  defaultBody,
+  renderCustomPageHtml,
+} from "../lib/customPageTemplate";
+import { getPlanStatus } from "../lib/billing";
+import { publishPage } from "../lib/publishPage";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, billing } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const config = await prisma.shopConfig.findUnique({
-    where: { shop },
-  });
+  const [config, { isPro }] = await Promise.all([
+    prisma.shopConfig.findUnique({ where: { shop } }),
+    getPlanStatus(billing),
+  ]);
 
   const errors = config ? validateConfig(config) : ["まだ情報が入力されていません"];
 
-  return json({ config, errors, shop });
+  return json({ config, errors, shop, isPro });
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { session, admin, billing } = await authenticate.admin(request);
+  const { isPaid, isPro } = await getPlanStatus(billing);
+
+  if (!isPro) {
+    return json(
+      { bulkError: "全ページの一括生成はProプラン限定の機能です。" },
+      { status: 403 }
+    );
+  }
+
+  const config = await prisma.shopConfig.findUnique({
+    where: { shop: session.shop },
+  });
+  if (!config) {
+    return json(
+      { bulkError: "先に「事業者情報」を入力・保存してください。" },
+      { status: 400 }
+    );
+  }
+  const cfgErrors = validateConfig(config);
+  if (cfgErrors.length > 0) {
+    return json(
+      { bulkError: "事業者情報に未入力の必須項目があります：" + cfgErrors.join("、") },
+      { status: 400 }
+    );
+  }
+
+  const publishedAt = new Date();
+  const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+  const results: { name: string; pageUrl?: string; error?: string }[] = [];
+
+  // 1) 特定商取引法に基づく表記
+  try {
+    const html = generateTokushoHtml(
+      { ...config, lastPublishedAt: publishedAt } as any,
+      { hideWatermark: isPaid, applyDesign: isPaid }
+    );
+    const r = await publishPage(admin, session.shop, {
+      handle: "tokushoho",
+      title: "特定商取引法に基づく表記",
+      html,
+      pageId: config.pageId,
+    });
+    await prisma.shopConfig.update({
+      where: { shop: session.shop },
+      data: { pageId: r.pageId, pageUrl: r.pageUrl, isPublished: true, lastPublishedAt: publishedAt },
+    });
+    results.push({ name: "特定商取引法に基づく表記", pageUrl: r.pageUrl });
+  } catch (e) {
+    if (e instanceof Response) throw e;
+    results.push({ name: "特定商取引法に基づく表記", error: msg(e) });
+  }
+
+  // 2) プライバシーポリシー（未設定なら事業者情報から既定値を作成）
+  let privacy = await prisma.privacyConfig.findUnique({
+    where: { shop: session.shop },
+  });
+  if (!privacy) {
+    privacy = await prisma.privacyConfig.create({
+      data: {
+        shop: session.shop,
+        operatorName: config.sellerName,
+        contactEmail: config.email,
+        purposes: ["order_fulfillment", "customer_support"],
+        collectedItems: ["name", "email", "address", "phone", "payment", "order_history"],
+        usesCookies: true,
+      },
+    });
+  }
+  try {
+    const html = generatePrivacyHtml(
+      { ...privacy, lastPublishedAt: publishedAt } as any,
+      config,
+      { hideWatermark: true }
+    );
+    const r = await publishPage(admin, session.shop, {
+      handle: "privacy-policy",
+      title: "プライバシーポリシー",
+      html,
+      pageId: privacy.pageId,
+    });
+    await prisma.privacyConfig.update({
+      where: { shop: session.shop },
+      data: { pageId: r.pageId, pageUrl: r.pageUrl, isPublished: true, lastPublishedAt: publishedAt },
+    });
+    results.push({ name: "プライバシーポリシー", pageUrl: r.pageUrl });
+  } catch (e) {
+    if (e instanceof Response) throw e;
+    results.push({ name: "プライバシーポリシー", error: msg(e) });
+  }
+
+  // 3) 会社概要・お問い合わせ・返品ポリシー（既存本文 or 事業者情報からの雛形）
+  for (const type of PAGE_TYPE_LIST) {
+    const meta = PAGE_TYPES[type];
+    const where = { shop_pageType: { shop: session.shop, pageType: type } };
+    const existing = await prisma.customPage.findUnique({ where });
+    const body = existing?.body || defaultBody(type, config);
+    try {
+      const html = renderCustomPageHtml(meta.title, body);
+      const r = await publishPage(admin, session.shop, {
+        handle: meta.handle,
+        title: meta.title,
+        html,
+        pageId: existing?.pageId,
+      });
+      await prisma.customPage.upsert({
+        where,
+        create: {
+          shop: session.shop,
+          pageType: type,
+          body,
+          pageId: r.pageId,
+          pageUrl: r.pageUrl,
+          isPublished: true,
+          lastPublishedAt: publishedAt,
+        },
+        update: {
+          body,
+          pageId: r.pageId,
+          pageUrl: r.pageUrl,
+          isPublished: true,
+          lastPublishedAt: publishedAt,
+        },
+      });
+      results.push({ name: meta.title, pageUrl: r.pageUrl });
+    } catch (e) {
+      if (e instanceof Response) throw e;
+      results.push({ name: meta.title, error: msg(e) });
+    }
+  }
+
+  return json({ bulkResults: results });
 };
 
 export default function Index() {
-  const { config, errors, shop } = useLoaderData<typeof loader>();
+  const { config, errors, isPro } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const isBulkRunning = navigation.state === "submitting";
 
   const isComplete = errors.length === 0;
   const isPublished = config?.isPublished && config?.pageUrl;
+  const bulkResults =
+    actionData && "bulkResults" in actionData ? actionData.bulkResults : null;
+  const bulkError =
+    actionData && "bulkError" in actionData ? actionData.bulkError : null;
 
   return (
     <Page title="特定商取引法ページ管理">
@@ -71,6 +227,44 @@ export default function Index() {
             </Banner>
           )}
         </Layout.Section>
+
+        {/* 一括生成の結果 */}
+        {bulkError && (
+          <Layout.Section>
+            <Banner title="一括生成できませんでした" tone="critical">
+              <p>{bulkError}</p>
+            </Banner>
+          </Layout.Section>
+        )}
+        {bulkResults && (
+          <Layout.Section>
+            <Banner
+              title={
+                bulkResults.every((r) => !r.error)
+                  ? "すべてのページを公開しました！"
+                  : "一部のページで問題がありました"
+              }
+              tone={bulkResults.every((r) => !r.error) ? "success" : "warning"}
+            >
+              <BlockStack gap="100">
+                {bulkResults.map((r, i) => (
+                  <Text as="p" key={i} variant="bodySm">
+                    {r.error ? "⚠️" : "✅"} {r.name}
+                    {r.pageUrl && (
+                      <>
+                        {" — "}
+                        <a href={r.pageUrl} target="_blank" rel="noopener noreferrer">
+                          {r.pageUrl}
+                        </a>
+                      </>
+                    )}
+                    {r.error && ` — ${r.error}`}
+                  </Text>
+                ))}
+              </BlockStack>
+            </Banner>
+          </Layout.Section>
+        )}
 
         <Layout.Section>
           <Layout>
@@ -122,6 +316,54 @@ export default function Index() {
                   </InlineStack>
                 </BlockStack>
               </Card>
+
+              {/* 全ページ一括生成（Pro） */}
+              <Box paddingBlockStart="400">
+                <Card>
+                  <BlockStack gap="300">
+                    <InlineStack gap="200" blockAlign="center">
+                      <Text as="h2" variant="headingMd">
+                        全ページをワンクリックで生成
+                      </Text>
+                      <Badge tone="success">Pro</Badge>
+                    </InlineStack>
+                    <Text as="p" variant="bodyMd" tone="subdued">
+                      特定商取引法・プライバシーポリシー・会社概要・お問い合わせ・返品ポリシーの5ページを、
+                      事業者情報をもとに一括で生成し、ストアに公開します。
+                    </Text>
+                    {isPro ? (
+                      <Form method="post">
+                        <InlineStack align="start">
+                          <Button
+                            variant="primary"
+                            submit
+                            size="large"
+                            loading={isBulkRunning}
+                            disabled={!isComplete}
+                          >
+                            5ページを一括生成・公開する
+                          </Button>
+                        </InlineStack>
+                        {!isComplete && (
+                          <Box paddingBlockStart="200">
+                            <Text as="p" variant="bodySm" tone="caution">
+                              先に事業者情報の必須項目を入力してください。
+                            </Text>
+                          </Box>
+                        )}
+                      </Form>
+                    ) : (
+                      <InlineStack align="start">
+                        <Button url="/app/billing">Proプランにアップグレード</Button>
+                      </InlineStack>
+                    )}
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      ※ 生成される各ページは雛形です。公開後、内容を確認・編集してください。
+                      法的な内容は必要に応じて専門家にご確認ください。
+                    </Text>
+                  </BlockStack>
+                </Card>
+              </Box>
             </Layout.Section>
 
             {/* サイド：法律の要件説明 */}

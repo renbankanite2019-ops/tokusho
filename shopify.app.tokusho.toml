@@ -10,7 +10,7 @@ automatically_update_urls_on_dev = true
 dev_store_url = "kizuna-digital.myshopify.com"
 
 [access_scopes]
-scopes = "write_content,read_content"
+scopes = "write_content,read_content,read_products"
 
 [auth]
 redirect_urls = [
