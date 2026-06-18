@@ -74,6 +74,65 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
+  const formData = await request.formData();
+  const intent = (formData.get("intent") as string) || "publish_all";
+
+  // ---- 公開前プレビュー（DBには書き込まない）----
+  if (intent === "preview_all") {
+    const privacyRow = await prisma.privacyConfig.findUnique({
+      where: { shop: session.shop },
+    });
+    const privacy =
+      privacyRow ?? {
+        shop: session.shop,
+        operatorName: config.sellerName,
+        contactEmail: config.email,
+        purposes: ["order_fulfillment", "customer_support"],
+        collectedItems: ["name", "email", "address", "phone", "payment", "order_history"],
+        usesCookies: true,
+        usesAnalytics: false,
+        analyticsNote: null,
+        sharesThirdParty: false,
+        thirdPartyNote: null,
+        disclosureContact: null,
+        extraNote: null,
+        pageId: null,
+        pageUrl: null,
+        lastPublishedAt: null,
+        isPublished: false,
+        id: "",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    const customPages = await prisma.customPage.findMany({
+      where: { shop: session.shop },
+    });
+    const cpMap: Record<string, any> = Object.fromEntries(
+      customPages.map((c) => [c.pageType, c])
+    );
+    const previews = [
+      {
+        name: "特定商取引法に基づく表記",
+        html: generateTokushoHtml(config as any, {
+          hideWatermark: isPaid,
+          applyDesign: isPaid,
+        }),
+      },
+      {
+        name: "プライバシーポリシー",
+        html: generatePrivacyHtml(privacy as any, config, { hideWatermark: true }),
+      },
+      ...PAGE_TYPE_LIST.map((type) => ({
+        name: PAGE_TYPES[type].title,
+        html: renderCustomPageHtml(
+          PAGE_TYPES[type].title,
+          cpMap[type]?.body || defaultBody(type, config)
+        ),
+      })),
+    ];
+    return json({ previews });
+  }
+
   const publishedAt = new Date();
   const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
   const results: { name: string; pageUrl?: string; error?: string }[] = [];
@@ -185,7 +244,11 @@ export default function Index() {
   const { config, errors, isPro } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const isBulkRunning = navigation.state === "submitting";
+  const navIntent = navigation.formData?.get("intent");
+  const isPreviewing =
+    navigation.state === "submitting" && navIntent === "preview_all";
+  const isPublishing =
+    navigation.state === "submitting" && navIntent === "publish_all";
 
   const isComplete = errors.length === 0;
   const isPublished = config?.isPublished && config?.pageUrl;
@@ -193,6 +256,8 @@ export default function Index() {
     actionData && "bulkResults" in actionData ? actionData.bulkResults : null;
   const bulkError =
     actionData && "bulkError" in actionData ? actionData.bulkError : null;
+  const previews =
+    actionData && "previews" in actionData ? actionData.previews : null;
 
   return (
     <Page title="特定商取引法ページ管理">
@@ -332,26 +397,84 @@ export default function Index() {
                       事業者情報をもとに一括で生成し、ストアに公開します。
                     </Text>
                     {isPro ? (
-                      <Form method="post">
-                        <InlineStack align="start">
-                          <Button
-                            variant="primary"
-                            submit
-                            size="large"
-                            loading={isBulkRunning}
-                            disabled={!isComplete}
-                          >
-                            5ページを一括生成・公開する
-                          </Button>
-                        </InlineStack>
-                        {!isComplete && (
-                          <Box paddingBlockStart="200">
-                            <Text as="p" variant="bodySm" tone="caution">
-                              先に事業者情報の必須項目を入力してください。
-                            </Text>
-                          </Box>
+                      <BlockStack gap="400">
+                        {!previews && !bulkResults && (
+                          <Form method="post">
+                            <input type="hidden" name="intent" value="preview_all" />
+                            <InlineStack align="start">
+                              <Button
+                                variant="primary"
+                                submit
+                                size="large"
+                                loading={isPreviewing}
+                                disabled={!isComplete}
+                              >
+                                5ページのプレビューを作成
+                              </Button>
+                            </InlineStack>
+                            {!isComplete && (
+                              <Box paddingBlockStart="200">
+                                <Text as="p" variant="bodySm" tone="caution">
+                                  先に事業者情報の必須項目を入力してください。
+                                </Text>
+                              </Box>
+                            )}
+                          </Form>
                         )}
-                      </Form>
+
+                        {previews && !bulkResults && (
+                          <BlockStack gap="300">
+                            <Text as="h3" variant="headingSm">
+                              公開前プレビュー（{previews.length}ページ）— 内容を確認してから公開してください
+                            </Text>
+                            {previews.map((p, i) => (
+                              <div
+                                key={i}
+                                style={{
+                                  border: "1px solid #e1e3e5",
+                                  borderRadius: 8,
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    background: "#f6f6f7",
+                                    padding: "8px 12px",
+                                    fontWeight: 600,
+                                    fontSize: 13,
+                                  }}
+                                >
+                                  {p.name}
+                                </div>
+                                <div
+                                  style={{
+                                    maxHeight: 280,
+                                    overflow: "auto",
+                                    padding: 16,
+                                    fontSize: 13,
+                                    lineHeight: 1.7,
+                                  }}
+                                  dangerouslySetInnerHTML={{ __html: p.html }}
+                                />
+                              </div>
+                            ))}
+                            <InlineStack gap="300">
+                              <Form method="post">
+                                <input type="hidden" name="intent" value="publish_all" />
+                                <Button
+                                  variant="primary"
+                                  submit
+                                  size="large"
+                                  loading={isPublishing}
+                                >
+                                  確認しました。5ページを公開する
+                                </Button>
+                              </Form>
+                              <Button url="/app">キャンセル</Button>
+                            </InlineStack>
+                          </BlockStack>
+                        )}
+                      </BlockStack>
                     ) : (
                       <InlineStack align="start">
                         <Button url="/app/billing">Proプランにアップグレード</Button>

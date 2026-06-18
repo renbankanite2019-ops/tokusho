@@ -25,6 +25,7 @@ import {
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
 import { validateConfig } from "../lib/tokushoTemplate";
+import { toKanjiPrefecture } from "../lib/jpPrefectures";
 
 const PAYMENT_OPTIONS = [
   { label: "クレジットカード（VISA・Mastercard・JCB・AMEX）", value: "credit_card" },
@@ -284,6 +285,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             address2
             city
             province
+            provinceCode
             zip
             phone
             company
@@ -299,7 +301,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       prefill = {
         sellerName: s.name || a.company || "",
         postalCode: a.zip || "",
-        prefecture: a.province || "",
+        prefecture: toKanjiPrefecture(a.province, a.provinceCode),
         address: [a.city, a.address1].filter(Boolean).join(" "),
         buildingName: a.address2 || "",
         phone: a.phone || "",
@@ -427,6 +429,11 @@ export default function Setup() {
   const [bilingual, setBilingual] = useState(config?.bilingual ?? false);
   // クイック設定（販売形態）の選択状態
   const [salesType, setSalesType] = useState<string[]>([]);
+  // Shopify 設定からの取込結果（確認メッセージ用）
+  const [importInfo, setImportInfo] = useState<{
+    count: number;
+    missing: string[];
+  } | null>(null);
 
   // TextField の入力状態（Polaris v13 は controlled が必須）
   // 連絡先系は初回のみ Shopify 設定（pf）を初期値にフォールバックする。
@@ -484,6 +491,23 @@ export default function Setup() {
   // Shopify ストア設定から連絡先を取り込む（いつでも再取込可能）。
   const importFromShopify = () => {
     if (!prefill) return;
+    // 取り込めた件数（Shopify 側に値があった項目）
+    const importKeys: (keyof typeof prefill)[] = [
+      "sellerName", "postalCode", "prefecture", "address",
+      "buildingName", "phone", "email", "websiteUrl",
+    ];
+    const count = importKeys.filter((k) => prefill[k]).length;
+    // 取込後も空のままの必須項目を洗い出す
+    const requiredLabels: [keyof typeof fields, string][] = [
+      ["sellerName", "販売業者名"],
+      ["address", "所在地"],
+      ["phone", "電話番号"],
+      ["email", "メールアドレス"],
+    ];
+    const missing = requiredLabels
+      .filter(([k]) => !(prefill[k as keyof typeof prefill] || fields[k]))
+      .map(([, label]) => label);
+
     setFields((prev) => ({
       ...prev,
       sellerName: prefill.sellerName || prev.sellerName,
@@ -495,6 +519,7 @@ export default function Setup() {
       email: prefill.email || prev.email,
       websiteUrl: prefill.websiteUrl || prev.websiteUrl,
     }));
+    setImportInfo({ count, missing });
   };
 
   // リアルタイムの表示チェック（特商法で求められる項目の抜け漏れを入力中に警告する）。
@@ -608,6 +633,18 @@ export default function Setup() {
                       <Button onClick={importFromShopify}>Shopify設定から取込む</Button>
                     </InlineStack>
                   </Box>
+                )}
+                {importInfo && (
+                  <Banner
+                    tone={importInfo.missing.length ? "warning" : "success"}
+                  >
+                    <p>
+                      Shopify設定から{importInfo.count}件を取り込みました。
+                      {importInfo.missing.length
+                        ? `未入力の必須項目：${importInfo.missing.join("、")} をご確認のうえ入力してください。`
+                        : "内容に誤りがないかご確認ください。"}
+                    </p>
+                  </Banner>
                 )}
               </BlockStack>
             </Card>
@@ -761,15 +798,17 @@ export default function Setup() {
                     multiline={2}
                   />
 
-                  <TextField
-                    label="送料"
-                    name="shippingFee"
-                    value={fields.shippingFee}
-                    onChange={setField("shippingFee")}
-                    autoComplete="off"
-                    helpText="例：全国一律500円（税込）、5,000円以上購入で送料無料"
-                    multiline={2}
-                  />
+                  {!sellsDigital && (
+                    <TextField
+                      label="送料"
+                      name="shippingFee"
+                      value={fields.shippingFee}
+                      onChange={setField("shippingFee")}
+                      autoComplete="off"
+                      helpText="例：全国一律500円（税込）、5,000円以上購入で送料無料"
+                      multiline={2}
+                    />
+                  )}
 
                   <TextField
                     label="商品代金・送料以外に発生する費用"
@@ -901,15 +940,26 @@ export default function Setup() {
                     onChange={setSellsDigital}
                   />
                   {sellsDigital && (
-                    <TextField
-                      label="ソフトウェア動作環境 *"
-                      name="softwareRequirements"
-                      value={fields.softwareRequirements}
-                      onChange={setField("softwareRequirements")}
-                      autoComplete="off"
-                      multiline={2}
-                      helpText="対応OS・ブラウザ・必要スペック等。デジタル商品販売時は必須です"
-                    />
+                    <>
+                      <TextField
+                        label="ソフトウェア動作環境 *"
+                        name="softwareRequirements"
+                        value={fields.softwareRequirements}
+                        onChange={setField("softwareRequirements")}
+                        autoComplete="off"
+                        multiline={2}
+                        helpText="対応OS・ブラウザ・必要スペック等。デジタル商品販売時は必須です"
+                      />
+                      <Banner tone="warning">
+                        <p>
+                          デジタル商品（ダウンロード・オンライン提供）について：通信販売にクーリング・オフ制度は
+                          適用されません。また、ダウンロード・利用開始後の返品はお受けできないとするのが一般的です。
+                          その場合は<strong>返品不可である旨と理由を明記</strong>してください
+                          （返品の可否・条件は法定の必須表示項目です）。
+                          送料の欄は非表示にしています。最終的な表記は必要に応じて専門家にご確認ください。
+                        </p>
+                      </Banner>
+                    </>
                   )}
 
                   <Checkbox
