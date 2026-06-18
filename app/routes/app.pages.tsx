@@ -226,7 +226,14 @@ export default function Pages() {
                 <InlineStack align="space-between" blockAlign="center">
                   <Text as="h2" variant="headingMd">{p.title}</Text>
                   {p.isPublished && p.pageUrl && (
-                    <Button variant="plain" url={p.pageUrl} external>公開中のページ</Button>
+                    <a
+                      href={p.pageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#005bd3", textDecoration: "none", fontSize: 13 }}
+                    >
+                      公開中のページ →
+                    </a>
                   )}
                 </InlineStack>
                 <Form method="post">

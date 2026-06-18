@@ -507,13 +507,16 @@ export default function Index() {
                     <List.Item>事業者名・住所・電話番号</List.Item>
                     <List.Item>代表者名（法人の場合）</List.Item>
                   </List>
-                  <Button
-                    url="https://www.no-trouble.caa.go.jp/what/mailorder/advertising.html"
-                    external
-                    variant="plain"
+                  {/* 外部リンクは埋め込みiframe内で開くと X-Frame-Options:deny で表示拒否される。
+                      新しいタブ（トップレベル）で開くため素の <a target="_blank"> を使う。 */}
+                  <a
+                    href="https://www.no-trouble.caa.go.jp/what/mailorder/advertising.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#005bd3", textDecoration: "none" }}
                   >
                     消費者庁の公式ガイド →
-                  </Button>
+                  </a>
                 </BlockStack>
               </Card>
 
