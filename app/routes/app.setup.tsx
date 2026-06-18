@@ -79,6 +79,19 @@ const CONTRACT_LIABILITY_PRESETS = [
   { label: "注文と異なる・不良品は送料当店負担で交換", value: "お届けした商品が注文内容と異なる場合や不良品であった場合は、送料当店負担にて良品と交換いたします。" },
 ];
 
+// アクセントカラーのプリセット（ユーザーは色名を知らなくても選べる）
+const PRESET_COLORS = [
+  { label: "グリーン", value: "#008060" },
+  { label: "ネイビー", value: "#1f3a5f" },
+  { label: "ブルー", value: "#2563eb" },
+  { label: "ティール", value: "#0891b2" },
+  { label: "パープル", value: "#7c3aed" },
+  { label: "ピンク", value: "#db2777" },
+  { label: "レッド", value: "#dc2626" },
+  { label: "オレンジ", value: "#d97706" },
+  { label: "ブラック", value: "#1a1a1a" },
+];
+
 // クイック設定：販売形態を選ぶと関連項目を自動でセットする
 const SALES_TYPES = [
   { label: "物理商品（個人事業主）", value: "ind_physical" },
@@ -86,6 +99,104 @@ const SALES_TYPES = [
   { label: "デジタル商品（ダウンロード・ソフト等）", value: "digital" },
   { label: "サブスク・定期購入", value: "subscription" },
 ];
+
+/**
+ * 色を「見て選ぶ」入力欄。プリセットのスウォッチ＋カラーピッカーで選び、
+ * 解決後の16進カラーを hidden input(name="accentColor") で送信する。
+ * ユーザーが #008060 のようなコードを知らなくても選べる。
+ */
+function ColorField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const normalized = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#008060";
+  return (
+    <BlockStack gap="200">
+      <input type="hidden" name="accentColor" value={value} />
+      <Text as="span" variant="bodyMd" fontWeight="medium">
+        アクセントカラー
+      </Text>
+      <Text as="p" variant="bodySm" tone="subdued">
+        見出し・表のヘッダーに使う色です。下から選ぶか、「自由に選ぶ」で好きな色を指定できます。
+      </Text>
+      <InlineStack gap="200" blockAlign="center">
+        {PRESET_COLORS.map((c) => {
+          const selected = value.toLowerCase() === c.value.toLowerCase();
+          return (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => onChange(c.value)}
+              title={c.label}
+              aria-label={c.label}
+              aria-pressed={selected}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: "50%",
+                background: c.value,
+                border: selected ? "3px solid #202223" : "1px solid #d2d5d8",
+                boxShadow: selected ? "0 0 0 2px #fff inset" : "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            />
+          );
+        })}
+        <label
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            cursor: "pointer",
+            marginInlineStart: 4,
+          }}
+        >
+          <input
+            type="color"
+            value={normalized}
+            onChange={(e) => onChange(e.target.value)}
+            title="自由に色を選ぶ"
+            style={{
+              width: 34,
+              height: 34,
+              padding: 0,
+              border: "1px solid #d2d5d8",
+              borderRadius: 8,
+              cursor: "pointer",
+              background: "none",
+            }}
+          />
+          <span style={{ fontSize: 12, color: "#6b7280" }}>自由に選ぶ</span>
+        </label>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            marginInlineStart: 8,
+          }}
+        >
+          <span
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: 3,
+              background: normalized,
+              border: "1px solid #d2d5d8",
+            }}
+          />
+          <code style={{ fontSize: 12, color: "#6b7280" }}>
+            {value || "#008060"}
+          </code>
+        </span>
+      </InlineStack>
+    </BlockStack>
+  );
+}
 
 /**
  * 「よく使う選択肢から選ぶ／自由入力する」を切り替えられる入力欄。
@@ -853,14 +964,9 @@ export default function Setup() {
                   ※ デザインのカスタマイズは Basic プラン以上で公開ページに反映されます（Freeプランは標準デザイン）。
                 </Text>
                 <FormLayout>
-                  <TextField
-                    label="アクセントカラー"
-                    name="accentColor"
+                  <ColorField
                     value={fields.accentColor}
                     onChange={setField("accentColor")}
-                    autoComplete="off"
-                    placeholder="#008060"
-                    helpText="見出し・表のヘッダーに使う色（例：#008060）"
                   />
                   <ChoiceList
                     title="レイアウト"
