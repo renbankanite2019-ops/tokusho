@@ -1,6 +1,7 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { prisma } from "../db.server";
 import { runLawCheck } from "../lib/lawCheck";
+import { sendEmail } from "../lib/mailer";
 
 /**
  * 法令変更の定期チェック用エンドポイント（Shopify認証なしの公開ルート）。
@@ -21,6 +22,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     url.searchParams.get("token") || request.headers.get("x-cron-secret") || "";
   if (provided !== secret) {
     return json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  // メール設定の動作確認用： ?test=1 でテストメールを1通送る（法令チェックは実行しない）。
+  if (url.searchParams.get("test") === "1") {
+    const emailConfigured = !!(
+      process.env.RESEND_API_KEY && process.env.LAW_ALERT_EMAIL_TO
+    );
+    const sent = await sendEmail({
+      subject: "【Tokusho】テストメール（法令監視）",
+      text: "これは Tokusho の法令監視メール設定のテストです。\nこのメールが届いていれば、メール通知の設定は正常です。",
+    });
+    return json({
+      ok: true,
+      test: true,
+      emailConfigured,
+      emailSent: sent,
+      hint: sent
+        ? "送信しました。受信箱（迷惑メールフォルダも）をご確認ください。"
+        : "送信できませんでした。RESEND_API_KEY と LAW_ALERT_EMAIL_TO（必要に応じて MAIL_FROM）を設定してください。",
+    });
   }
 
   const results = await runLawCheck(prisma);
