@@ -90,7 +90,7 @@ Note: This app assists with drafting the page and **does not provide legal advic
 ## 10. その他のフィールド
 - **Category（カテゴリ）:** Store management / Store design（"法律・コンプライアンス" 系が無ければ Store management）
 - **Languages:** Japanese（主）, English
-- **Support email:** `<サポート用メールアドレス>`（例: ren.ban.kan.ite2019@gmail.com かどうか確認）
+- **Support email:** ren.ban.kan.ite2019@gmail.com
 - **Privacy policy URL:** `<PRIVACY.md をホストした URL>`（GitHub Pages / Notion public など）
 - **Demo store URL（任意）:** `https://kizuna-digital.myshopify.com/pages/tokushoho`
 

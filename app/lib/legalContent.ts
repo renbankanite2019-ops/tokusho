@@ -1,9 +1,9 @@
 // 提供者（アプリ運営者）向けの法務ページの内容。
 // ↓ この3つを自社の情報に置き換えてください（置き換え後に再デプロイで反映）。
 export const LEGAL = {
-  companyName: "〈当社の正式名称〉",
-  contactEmail: "〈support@example.com〉",
-  effectiveDate: "〈YYYY年MM月DD日〉",
+  companyName: "レーンバンカン（個人事業主）",
+  contactEmail: "ren.ban.kan.ite2019@gmail.com",
+  effectiveDate: "2026年6月20日",
 };
 
 const C = LEGAL;
@@ -114,7 +114,7 @@ export function termsHtml(): string {
   <p>当社は必要に応じ、通知または本アプリ上での掲示により本規約を変更できます。変更後の利用継続をもって同意とみなします。</p>
 
   <h2>第13条（準拠法・管轄）</h2>
-  <p>本規約の準拠法は日本法とし、本アプリまたは本規約に関する紛争は<strong>〈東京地方裁判所〉</strong>を第一審の専属的合意管轄裁判所とします。</p>
+  <p>本規約の準拠法は日本法とし、本アプリまたは本規約に関する紛争は<strong>東京地方裁判所</strong>を第一審の専属的合意管轄裁判所とします。</p>
 
   <h2>第14条（お問い合わせ）</h2>
   <p>${C.contactEmail}</p>

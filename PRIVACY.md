@@ -2,10 +2,10 @@
 
 > **DRAFT — requires review before publishing.** This draft is AI-assisted. Have it reviewed by a person (and, for the Japanese market, ideally a 専門家) before you host it and submit it as your App Store privacy policy URL. Verify every statement matches what the app actually does at launch.
 
-**Last updated:** <!-- fill in date when you publish -->
+**Last updated:** 2026-06-20
 **App:** Tokusho
-**Provider:** <!-- your legal/business name -->
-**Contact:** <!-- your support email -->
+**Provider:** レーンバンカン (sole proprietor / 個人事業主)
+**Contact:** ren.ban.kan.ite2019@gmail.com
 
 ---
 
@@ -100,4 +100,4 @@ date above.
 
 ## 11. Contact
 
-Questions about this policy: <!-- your support email -->
+Questions about this policy: ren.ban.kan.ite2019@gmail.com

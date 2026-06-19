@@ -44,7 +44,7 @@ Implemented at `/webhooks`: `customers/data_request`, `customers/redact`, `shop/
 - The generated pages are **drafts based on the 消費者庁 (Consumer Affairs Agency) guideline**. The app shows an in-app disclaimer that **legal accuracy is the merchant's responsibility**; it does not claim to guarantee compliance.
 - Embedded app (App Bridge, session-token auth). Hosted on Google Cloud Run.
 - Privacy policy URL: `<hosted PRIVACY.md URL>`
-- Support email: `<support email>`
+- Support email: ren.ban.kan.ite2019@gmail.com
 
 ## Test store (if you need one provided)
 - `<provide a test/dev store + staff login if Shopify requests, otherwise reviewers use their own>`
