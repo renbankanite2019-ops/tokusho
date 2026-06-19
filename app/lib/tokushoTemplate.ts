@@ -1,5 +1,18 @@
 import type { ShopConfig } from "@prisma/client";
 
+/**
+ * テンプレート／法令対応の最終更新日（YYYY-MM-DD）。
+ * 特商法の改正やテンプレートの重要な修正を反映したら、この日付を更新する。
+ * これより前に公開されたページは「古い」と判定し、ダッシュボードで再公開を促す。
+ * （注：法令変更の把握・文言の確定は人／専門家が行う。ここは配布の仕組みのみ。）
+ */
+export const TEMPLATE_UPDATED_AT = "2026-06-19";
+
+/** 更新履歴（新しい順）。ダッシュボードに最新の1件を表示する。 */
+export const TEMPLATE_CHANGELOG: { date: string; note: string }[] = [
+  { date: "2026-06-19", note: "テンプレートの整備（初期バージョン）" },
+];
+
 /** HTMLの特殊文字をエスケープしてインジェクションを防ぐ */
 export function escapeHtml(str: string | null | undefined): string {
   if (!str) return "";

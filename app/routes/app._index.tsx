@@ -21,7 +21,12 @@ import {
 import { CheckCircleIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
-import { generateTokushoHtml, validateConfig } from "../lib/tokushoTemplate";
+import {
+  generateTokushoHtml,
+  validateConfig,
+  TEMPLATE_UPDATED_AT,
+  TEMPLATE_CHANGELOG,
+} from "../lib/tokushoTemplate";
 import { generatePrivacyHtml } from "../lib/privacyTemplate";
 import {
   PAGE_TYPES,
@@ -43,19 +48,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const errors = config ? validateConfig(config) : ["まだ情報が入力されていません"];
 
-  return json({ config, errors, shop, isPro });
+  // 公開済みページが、最新テンプレート更新日より前に公開されていれば「古い」と判定。
+  const isOutdated = !!(
+    config?.isPublished &&
+    config?.lastPublishedAt &&
+    new Date(config.lastPublishedAt) < new Date(TEMPLATE_UPDATED_AT)
+  );
+  const latestChange = TEMPLATE_CHANGELOG[0] ?? null;
+
+  return json({ config, errors, shop, isPro, isOutdated, latestChange });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin, billing } = await authenticate.admin(request);
+  const formData = await request.formData();
+  const intent = (formData.get("intent") as string) || "publish_all";
   const { isPaid, isPro } = await getPlanStatus(billing);
-
-  if (!isPro) {
-    return json(
-      { bulkError: "全ページの一括生成はProプラン限定の機能です。" },
-      { status: 403 }
-    );
-  }
 
   const config = await prisma.shopConfig.findUnique({
     where: { shop: session.shop },
@@ -74,8 +82,49 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
-  const formData = await request.formData();
-  const intent = (formData.get("intent") as string) || "publish_all";
+  // ---- 特商法ページを最新テンプレートで再公開（全プラン可）----
+  if (intent === "republish_tokusho") {
+    const publishedAt = new Date();
+    try {
+      const html = generateTokushoHtml(
+        { ...config, lastPublishedAt: publishedAt } as any,
+        { hideWatermark: isPaid, applyDesign: isPaid }
+      );
+      const r = await publishPage(admin, session.shop, {
+        handle: "tokushoho",
+        title: "特定商取引法に基づく表記",
+        html,
+        pageId: config.pageId,
+      });
+      await prisma.shopConfig.update({
+        where: { shop: session.shop },
+        data: {
+          pageId: r.pageId,
+          pageUrl: r.pageUrl,
+          isPublished: true,
+          lastPublishedAt: publishedAt,
+        },
+      });
+      return json({ republished: true });
+    } catch (e) {
+      if (e instanceof Response) throw e;
+      return json(
+        {
+          bulkError:
+            "再公開に失敗しました：" + (e instanceof Error ? e.message : String(e)),
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ---- 以下は Pro 限定（5ページ一括）----
+  if (!isPro) {
+    return json(
+      { bulkError: "全ページの一括生成はProプラン限定の機能です。" },
+      { status: 403 }
+    );
+  }
 
   // ---- 公開前プレビュー（DBには書き込まない）----
   if (intent === "preview_all") {
@@ -241,7 +290,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  const { config, errors, isPro } = useLoaderData<typeof loader>();
+  const { config, errors, isPro, isOutdated, latestChange } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navIntent = navigation.formData?.get("intent");
@@ -249,6 +299,8 @@ export default function Index() {
     navigation.state === "submitting" && navIntent === "preview_all";
   const isPublishing =
     navigation.state === "submitting" && navIntent === "publish_all";
+  const isRepublishing =
+    navigation.state === "submitting" && navIntent === "republish_tokusho";
 
   const isComplete = errors.length === 0;
   const isPublished = config?.isPublished && config?.pageUrl;
@@ -258,6 +310,8 @@ export default function Index() {
     actionData && "bulkError" in actionData ? actionData.bulkError : null;
   const previews =
     actionData && "previews" in actionData ? actionData.previews : null;
+  const republished =
+    actionData && "republished" in actionData ? actionData.republished : null;
 
   return (
     <Page title="特定商取引法ページ管理">
@@ -292,6 +346,38 @@ export default function Index() {
             </Banner>
           )}
         </Layout.Section>
+
+        {/* 法令・テンプレート更新の通知 */}
+        {republished && (
+          <Layout.Section>
+            <Banner title="特商法ページを最新の内容で再公開しました" tone="success" />
+          </Layout.Section>
+        )}
+        {isOutdated && !republished && (
+          <Layout.Section>
+            <Banner title="特商法ページに更新があります" tone="warning">
+              <BlockStack gap="200">
+                <Text as="p">
+                  テンプレートまたは法令対応の更新がありました
+                  {latestChange && `（${latestChange.date}：${latestChange.note}）`}
+                  。現在公開中のページはこの更新より前に公開されています。
+                  最新の内容で再公開することをおすすめします。
+                </Text>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="republish_tokusho" />
+                  <InlineStack align="start">
+                    <Button variant="primary" submit loading={isRepublishing}>
+                      最新の内容で再公開する
+                    </Button>
+                  </InlineStack>
+                </Form>
+                <Text as="p" variant="bodySm" tone="subdued">
+                  ※ 生成内容は雛形です。法令変更の直後は、必要に応じて専門家にご確認ください。
+                </Text>
+              </BlockStack>
+            </Banner>
+          </Layout.Section>
+        )}
 
         {/* 一括生成の結果 */}
         {bulkError && (
