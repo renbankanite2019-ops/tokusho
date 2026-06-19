@@ -53,9 +53,11 @@ export function generateTokushoHtml(
   const rowBorder = minimal ? "1px solid #eee" : "1px solid #ddd";
   // 日英併記（Basicプラン以上 + bilingual=true のとき項目名に英語を併記）
   const bil = design && config.bilingual === true;
+  // 英語の項目名は見出しセルの文字色を継承し、不透明度で控えめにする。
+  // （色を固定すると、色付きヘッダー＝白文字の上でグレーが読みづらくなるため）
   const L = (ja: string, en: string) =>
     bil
-      ? `${ja}<br><small style="font-weight:normal;color:#888;">${en}</small>`
+      ? `${ja}<br><small style="font-weight:normal;opacity:0.72;font-size:0.78em;letter-spacing:0.02em;">${en}</small>`
       : ja;
   const {
     businessType,
