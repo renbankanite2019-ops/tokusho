@@ -29,8 +29,11 @@ export function privacyHtml(): string {
   </ul>
 
   <h2>3. Data we do NOT collect</h2>
-  <p>The App does not access, store, or process your customers' personal data, orders, products, or payment data.
-  It requests only the <code>write_content</code> and <code>read_content</code> scopes (to create/update a Page).</p>
+  <p>The App does not access, store, or process your customers' personal data, orders, or payment data.
+  It requests the <code>write_content</code> and <code>read_content</code> scopes (to create/update the disclosure Page)
+  and <code>read_products</code>, which is used only to detect whether your store sells digital goods or subscriptions
+  so the App can suggest the appropriate disclosure fields. Product information is read at that moment only and is
+  <strong>not stored</strong>.</p>
 
   <h2>4. How we use data</h2>
   <p>To generate the disclosure-page content from your input, create/update that page on your storefront via the
@@ -78,7 +81,7 @@ export function termsHtml(): string {
   <p>本規約は、当社が提供する Shopify アプリ「Tokusho」（以下「本アプリ」）の利用に関する一切に適用されます。利用者は本アプリをインストールした時点で本規約に同意したものとみなされます。</p>
 
   <h2>第2条（本アプリの内容）</h2>
-  <p>本アプリは、利用者が入力する情報をもとに、特定商取引法に基づく表記ページ等のひな形の作成・公開を補助するツールです。生成物の法的な正確性・完全性・最新性、法令適合を保証しません。</p>
+  <p>本アプリは、利用者が入力する情報をもとに、特定商取引法に基づく表記ページ等のひな形の作成・公開を補助するツールです。生成物の法的な正確性・完全性・最新性、法令適合を保証しません。<strong>本アプリは法律事務の取扱いや法的助言（リーガルアドバイス）の提供を行うものではなく、利用者の個別の法的判断を代替しません。</strong>具体的な法的判断が必要な場合、利用者は弁護士等の専門家に相談するものとします。</p>
 
   <h2>第3条（料金）</h2>
   <p>料金は当社が定めるプラン（無料／有料）に従い Shopify の課金機能を通じて請求されます。支払済みの料金は法令上必要な場合を除き返金されません。</p>
@@ -87,7 +90,7 @@ export function termsHtml(): string {
   <p>利用者は、入力情報の正確性を自己の責任で確保します。生成物の内容が実際の取引条件・事業形態および適用法令（特定商取引法・個人情報保護法・景品表示法等）に適合しているかの最終確認は利用者自身の責任で行い、必要に応じて専門家に相談するものとします。生成物の公開・使用に起因する結果は利用者が責任を負います。</p>
 
   <h2>第5条（免責・保証の否認）</h2>
-  <p>本アプリおよび生成物は「現状有姿（AS IS）」で提供され、当社は商品性・特定目的適合性・正確性・完全性・継続性その他一切の保証を行いません。法改正への自動的な追随も保証しません。</p>
+  <p>本アプリおよび生成物は「現状有姿（AS IS）」で提供され、当社は商品性・特定目的適合性・正確性・完全性・継続性その他一切の保証を行いません。法改正への自動的な追随も保証しません。本アプリが提供する法令変更の検知・通知機能（提供する場合）は補助的なものであり、検知の網羅性・正確性・即時性や通知の実施を保証しません。適法性の最終確認は利用者の責任で行うものとします。</p>
 
   <h2>第6条（責任の制限）</h2>
   <p>当社は、本アプリの利用に起因して利用者に生じた損害（行政指導・処分、第三者との紛争、逸失利益、データ消失を含む）について、当社の故意・重過失による場合を除き責任を負いません。当社が責任を負う場合でも、賠償額は損害発生時から遡って過去12か月間に利用者が支払った利用料金の総額（無料プランは金〈3,000〉円）を上限とし、間接・特別・結果的損害は対象外とします。本条は利用者が事業者であることを前提とした合意です。</p>

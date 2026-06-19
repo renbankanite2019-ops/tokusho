@@ -34,7 +34,7 @@
 
 3ステップで完了：① 事業者情報を入力 → ② プレビューで確認 → ③ ストアに公開。
 
-※ 本アプリは表記ページの作成を補助するツールです。掲載内容の法的な正確性は利用者の責任においてご確認ください。必要に応じて専門家にご相談ください。
+※ 本アプリは表記ページの作成を補助するツールであり、**法的助言を提供するものではありません**。掲載内容の法的な正確性・法令適合は利用者の責任においてご確認ください。必要に応じて弁護士等の専門家にご相談ください。
 
 **EN:**
 Every business selling online in Japan is legally required (Specified Commercial Transactions Act, Article 11) to publish a "特定商取引法に基づく表記" disclosure page. Tokusho generates a clean, complete page from a simple form and publishes it to your Shopify store.
@@ -49,14 +49,16 @@ Every business selling online in Japan is legally required (Specified Commercial
 
 Three steps: ① enter business info → ② preview → ③ publish.
 
-Note: This app assists with drafting the page. You are responsible for the legal accuracy of the content; consult a professional if needed.
+Note: This app assists with drafting the page and **does not provide legal advice**. You are responsible for the legal accuracy and compliance of the content; consult a qualified professional if needed.
 
 ## 5. Feature list（最大5つ・タイトル＋説明）
 1. **法定の表示項目に対応** — 消費者庁ガイドラインで求められる表示項目をフォームで入力。
 2. **数分で作成・ワンクリック公開** — `/pages/tokushoho` に自動でページ作成。
-3. **個人・法人どちらも対応** — 事業者種別で項目を自動切替。
-4. **情報更新も即反映** — 編集して再公開するだけ、最終更新日も自動更新。
-5. **プライバシーポリシー生成（Pro）** — 個人情報保護方針ページも作成。
+3. **デザイン・日英併記（Basic）** — アクセントカラー／レイアウト調整、項目名の日英併記。
+4. **プライバシー・追加ページ・一括生成（Pro）** — プライバシーポリシー／会社概要／お問い合わせ／返品ポリシーをまとめて作成。
+5. **法令変更を検知してお知らせ** — 監視対象の法令データに変更があれば通知し、再公開を促します（検知・通知を補助するもので、適法性の最終確認はご自身で）。
+
+> 注意（誇大表現の回避）：機能5は「変更を検知して通知する」補助機能です。「法令準拠を保証」「常に最新の法令に自動対応」等の断定的・保証的表現は使わないこと（景品表示法・非弁リスク）。
 
 ## 6. Screenshots（最低3枚・推奨1600×900程度／管理画面を実機キャプチャ）
 撮影プラン：
@@ -76,12 +78,14 @@ Note: This app assists with drafting the page. You are responsible for the legal
 ## 8. Search terms / キーワード（ASO）
 `特定商取引法` `特商法` `通販法` `法律表記` `必要表記` `特商法ページ` `特定商取引法に基づく表記` `プライバシーポリシー` `コンプライアンス` `tokusho`
 
-## 9. Pricing（Partners Dashboard で設定）
+## 9. Pricing（Partners Dashboard で設定。年額を主・月額を従として登録）
 | プラン | 価格 | 内容 |
 |---|---|---|
-| Free | ¥0 | 特商法ページ生成・公開、法定項目対応、更新／再公開（ページ下部に「Powered by Tokusho」表示） |
-| Basic | $3.99/月 | 「Powered by Tokusho」表示を削除、メールサポート |
-| Pro | $7.99/月 | プライバシーポリシー生成・公開、優先サポート |
+| Free | ¥0 | 特商法ページ生成・公開、法定項目対応、更新／再公開、法令変更のお知らせ（ページ下部に「Powered by Tokusho」表示） |
+| Basic | $39.99/年（または $3.99/月） | 「Powered by Tokusho」表示を削除、デザインカスタマイズ、日英併記、メールサポート |
+| Pro | $79.99/年（または $7.99/月） | プライバシーポリシー生成、追加ページ（会社概要／お問い合わせ／返品ポリシー）、5ページ一括生成、優先サポート |
+
+> ※ 年額は churn 対策として主導線にする方針。Managed Pricing は買い切り非対応のため、買い切りに最も近い「年額」を前面に出す。価格は確定前のため、Dashboard 登録値とアプリ内表示（`app.billing.tsx`）を一致させること。
 
 ## 10. その他のフィールド
 - **Category（カテゴリ）:** Store management / Store design（"法律・コンプライアンス" 系が無ければ Store management）
@@ -96,4 +100,5 @@ Note: This app assists with drafting the page. You are responsible for the legal
 - [ ] Privacy policy をホスト＋URL 設定
 - [ ] Pricing（Free/Basic/Pro）を Dashboard で登録
 - [ ] 特商法テンプレート文言を専門家レビュー
-- [ ] App listing 文言の最終確認（誇大表現・「保証」表現を避ける）
+- [ ] 利用規約・プライバシーポリシー・非弁（弁護士法72条）の位置づけを弁護士レビュー
+- [ ] App listing 文言の最終確認（誇大表現・「保証」「法令準拠」断定を避ける／「法的助言ではない」旨を明記）
