@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import type { PrismaClient } from "@prisma/client";
+import { sendEmail } from "./mailer";
 
 /**
  * 監視対象の法令（e-Gov LawId）。
@@ -111,22 +112,27 @@ export async function runLawCheck(
 }
 
 /**
- * 変更検知時の通知。LAW_ALERT_WEBHOOK_URL が設定されていれば POST する
- * （Slack/Discord/汎用の incoming webhook を想定）。常に console にも出力する。
+ * 変更検知時の通知。console / Webhook(LAW_ALERT_WEBHOOK_URL) / メール(Resend) の
+ * 設定されている経路すべてに通知する（いずれも任意・失敗は握りつぶす）。
  */
 async function notifyChange(lawName: string, lawId: string): Promise<void> {
-  const msg = `【法令変更の可能性】${lawName}（${lawId}）の法令データに差分を検知しました。e-Gov で内容を確認し、必要ならテンプレートを更新して TEMPLATE_UPDATED_AT を更新してください。 https://laws.e-gov.go.jp/law/${lawId}`;
+  const msg = `【法令変更の可能性】${lawName}（${lawId}）の法令データに差分を検知しました。e-Gov で内容を確認し、必要ならテンプレートを更新して TEMPLATE_UPDATED_AT を更新してください。\nhttps://laws.e-gov.go.jp/law/${lawId}`;
   console.warn("[lawCheck]", msg);
+
+  // Webhook（Slack/Discord/汎用。{text}/{content} 両対応）
   const url = process.env.LAW_ALERT_WEBHOOK_URL;
-  if (!url) return;
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // Slack/Discord は { text } / { content } を解釈。両方入れて汎用化。
-      body: JSON.stringify({ text: msg, content: msg }),
-    });
-  } catch (e) {
-    console.error("[lawCheck] webhook notify failed:", e);
+  if (url) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: msg, content: msg }),
+      });
+    } catch (e) {
+      console.error("[lawCheck] webhook notify failed:", e);
+    }
   }
+
+  // メール（Resend。RESEND_API_KEY + LAW_ALERT_EMAIL_TO 設定時のみ）
+  await sendEmail({ subject: `【Tokusho】法令変更の可能性: ${lawName}`, text: msg });
 }
