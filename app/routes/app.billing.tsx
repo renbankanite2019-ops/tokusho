@@ -39,8 +39,9 @@ const PLAN_DETAILS = [
   {
     key: "FREE",
     name: "Free",
-    price: "¥0",
-    period: "永久無料",
+    priceMain: "¥0",
+    priceSub: "永久無料",
+    badge: null as string | null,
     features: [
       "特商法ページの自動生成",
       "Shopifyストアへの直接公開",
@@ -52,8 +53,9 @@ const PLAN_DETAILS = [
   {
     key: "BASIC",
     name: "Basic",
-    price: "$3.99",
-    period: "/ month",
+    priceMain: "$39.99 / 年",
+    priceSub: "または 月額 $3.99",
+    badge: "年額なら約2ヶ月分お得",
     features: [
       "Freeプランのすべての機能",
       "「Powered by Tokusho」表示を削除",
@@ -66,12 +68,14 @@ const PLAN_DETAILS = [
   {
     key: "PRO",
     name: "Pro",
-    price: "$7.99",
-    period: "/ month",
+    priceMain: "$79.99 / 年",
+    priceSub: "または 月額 $7.99",
+    badge: "年額なら約2ヶ月分お得",
     features: [
       "Basicプランのすべての機能",
       "プライバシーポリシー生成・公開",
       "追加ページ生成（会社概要・お問い合わせ・返品ポリシー）",
+      "5ページをワンクリックで一括生成",
       "優先サポート",
     ],
     limitations: [],
@@ -110,6 +114,23 @@ export default function Billing() {
           </Card>
         </Layout.Section>
 
+        {/* 年額のおすすめ */}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="200">
+              <InlineStack gap="200" blockAlign="center">
+                <Text as="h2" variant="headingMd">年額プランがおすすめ</Text>
+                <Badge tone="attention">おトク</Badge>
+              </InlineStack>
+              <Text as="p" variant="bodyMd" tone="subdued">
+                特定商取引法ページは一度設定すればそのままお使いいただけます。
+                年額プランなら、お支払いは1年に1度だけ。毎月の請求や管理の手間がなく、
+                必要なときの修正・再公開はいつでも行えます。
+              </Text>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+
         {/* プラン一覧（情報表示） */}
         <Layout.Section>
           <Text as="h2" variant="headingMd">プラン内容</Text>
@@ -124,14 +145,17 @@ export default function Billing() {
                         <InlineStack align="space-between" blockAlign="start">
                           <BlockStack gap="100">
                             <Text as="h3" variant="headingMd">{plan.name}</Text>
-                            <InlineStack gap="100" blockAlign="baseline">
-                              <Text as="p" variant="headingXl" fontWeight="bold">
-                                {plan.price}
-                              </Text>
-                              <Text as="p" variant="bodySm" tone="subdued">
-                                {plan.period}
-                              </Text>
-                            </InlineStack>
+                            <Text as="p" variant="headingXl" fontWeight="bold">
+                              {plan.priceMain}
+                            </Text>
+                            <Text as="p" variant="bodySm" tone="subdued">
+                              {plan.priceSub}
+                            </Text>
+                            {plan.badge && (
+                              <Box paddingBlockStart="100">
+                                <Badge tone="attention">{plan.badge}</Badge>
+                              </Box>
+                            )}
                           </BlockStack>
                           {isCurrent && <Badge tone="success">現在のプラン</Badge>}
                         </InlineStack>
@@ -162,8 +186,8 @@ export default function Billing() {
               <Text as="h3" variant="headingMd">お支払いについて</Text>
               <Text as="p" variant="bodyMd" tone="subdued">
                 プランの選択・変更・解約は、上の「プランを選択・変更する」から
-                Shopify のプラン選択ページで行います。お支払いはすべて Shopify を通じて
-                処理され、日割り計算で精算されます。
+                Shopify のプラン選択ページで行います。年額・月額はそのページで選べます。
+                お支払いはすべて Shopify を通じて処理され、日割り計算で精算されます。
               </Text>
             </BlockStack>
           </Card>
