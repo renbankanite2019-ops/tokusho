@@ -38,8 +38,11 @@ online sellers in Japan.
 ## 3. Data we do NOT collect
 
 - The App does **not** access, store, or process your customers' personal data.
-- The App does **not** read orders, customer records, products, or payment data.
-  It requests only `write_content` and `read_content` scopes (to create/update a Page).
+- The App does **not** read orders, customer records, or payment data.
+- It requests `write_content` and `read_content` (to create/update the disclosure Page)
+  and `read_products`. `read_products` is used only to detect whether the store sells
+  digital goods or subscriptions, so the App can suggest the right disclosure fields;
+  product information is read at that moment only and is **not stored**.
 
 ## 4. How we use data
 
@@ -59,8 +62,10 @@ We do **not** sell your data or use it for advertising.
 
 The App relies on these service providers to operate:
 - **Shopify** — platform, authentication, and the Admin API.
-- **Neon** — database hosting.
-- **<!-- your app host, e.g. Railway -->** — application hosting.
+- **Supabase** — database hosting (PostgreSQL, Tokyo / ap-northeast-1 region).
+- **Google Cloud Run** — application hosting (Tokyo / asia-northeast1 region).
+- **e-Gov 法令API (Digital Agency, Japan)** — queried to detect changes to monitored laws (no personal data is sent).
+- **Resend** — transactional email delivery for operator notifications (only if configured).
 
 Each processes data only to provide their service. Review their respective
 privacy policies for details.
