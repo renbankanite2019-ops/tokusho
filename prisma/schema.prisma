@@ -136,6 +136,21 @@ model CustomPage {
   @@unique([shop, pageType])
 }
 
+// 法令変更の定期監視用（運用者向け）。e-Gov 法令API から取得した法令データの
+// フィンガープリント（ハッシュ）を保存し、次回取得時に差分が出たら「変更あり」として通知する。
+// 注：変更の検知はこの仕組み、文言の確定は人／専門家が行う。
+model LawWatch {
+  id            String    @id @default(cuid())
+  lawId         String    @unique // e-Gov LawId 例: 351AC0000000057（特定商取引法）
+  lawName       String
+  fingerprint   String? // 最後に取得した法令データの SHA-256
+  lastCheckedAt DateTime?
+  lastChangedAt DateTime? // フィンガープリントが最後に変化した日時
+  changed       Boolean   @default(false) // 未確認の変更があるか（運用者が確認したら false に戻す）
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
 enum Plan {
   FREE
   BASIC
