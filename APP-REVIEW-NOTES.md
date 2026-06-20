@@ -22,20 +22,17 @@ The UI is in **Japanese** (target market: Japan).
    - 事業者名: `Test Shop` / 代表者: `Taro Yamada` / 〒150-0002 渋谷区渋谷1-1-1 / TEL `03-1234-5678` / email `test@example.com`. Select payment/delivery/return options.
    - Click **保存してプレビューへ** (Save & preview).
 4. On **プレビュー・公開** (Preview/Publish) you see the generated page. Click **ストアに公開する** (Publish to store).
-5. Visit `https://<your-test-store>.myshopify.com/pages/tokushoho` — the disclosure page is live.
-   - On the **Free** plan, the page shows a small **"Powered by Tokusho"** line in the footer.
+5. Visit `https://<your-test-store>.myshopify.com/pages/tokushoho` — the disclosure page is live. There is no watermark on any plan.
 
 ## How to test billing (Shopify Managed Pricing)
-This app uses **Shopify Managed Pricing** — the plan selection page is hosted by Shopify, not built into the app. The app does not call the Billing API.
+This app uses **Shopify Managed Pricing** — the plan selection page is hosted by Shopify, not built into the app. The app does not call the Billing API. Two plans: **Free** and **Pro**.
 1. Open **プラン・お支払い** (Plans & Billing) — or `/app/billing`.
 2. Click **プランを選択・変更する** (Select / change plan). You are redirected (at the top level, out of the embedded frame) to Shopify's plan selection page for this app.
-3. Choose a plan and approve it. **On a development/test store this is a test charge — you are not billed.**
-   - **Basic** ($39.99/yr or $3.99/mo) — removes the "Powered by Tokusho" footer; enables design customization (accent color / layout) and JA/EN bilingual labels.
-   - **Pro** ($79.99/yr or $7.99/mo) — adds the Privacy Policy generator, additional pages (会社概要 / お問い合わせ / 返品ポリシー), and one-click "generate all 5 pages".
-   - **To test all Pro-only features end-to-end, select the Pro plan.** On a development/test store this is a **test charge (no real billing)** and unlocks every Pro feature — no separate account or credentials are needed.
+3. Select the **Pro** plan ($49.99/yr or $4.99/mo) and approve it. **On a development/test store this is a test charge — you are not billed**, and it unlocks all Pro features end-to-end (no separate account or credentials needed).
+   - Pro adds: design customization (accent color / layout), JA/EN bilingual labels, Privacy Policy generator, additional pages (会社概要 / お問い合わせ / 返品ポリシー), and one-click "generate all 5 pages".
 4. After approving, you are returned to the app. Verify:
-   - **Basic+**: re-publish the 特商法 page (Preview → Publish) → the "Powered by Tokusho" footer is gone and the chosen accent color / layout / bilingual labels are applied.
-   - **Pro**: the **プライバシーポリシー** and **追加ページ** menus become usable (on Free/Basic they show a Pro upsell screen, by design), and the dashboard's **5ページ一括生成** (generate all pages) becomes available.
+   - Re-publish the 特商法 page (Preview → Publish) → the chosen accent color / layout / bilingual labels are applied.
+   - The **プライバシーポリシー** and **追加ページ** menus become usable (on Free they show a Pro upsell screen, by design), and the dashboard's **5ページ一括生成** (generate all pages) becomes available.
    - The privacy page is published at `/pages/privacy-policy`.
 
 ## Mandatory compliance (GDPR) webhooks

@@ -9,8 +9,8 @@ import { getPlanStatus } from "../lib/billing";
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
-  const { isPaid, isPro } = await getPlanStatus(billing);
-  const dbPlan = isPro ? "PRO" : isPaid ? "BASIC" : "FREE";
+  const { isPro } = await getPlanStatus(billing);
+  const dbPlan = isPro ? "PRO" : "FREE";
   await prisma.shopConfig.updateMany({
     where: { shop: session.shop },
     data: { plan: dbPlan },

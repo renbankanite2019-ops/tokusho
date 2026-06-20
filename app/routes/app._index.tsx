@@ -63,7 +63,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin, billing } = await authenticate.admin(request);
   const formData = await request.formData();
   const intent = (formData.get("intent") as string) || "publish_all";
-  const { isPaid, isPro } = await getPlanStatus(billing);
+  const { isPro } = await getPlanStatus(billing);
 
   const config = await prisma.shopConfig.findUnique({
     where: { shop: session.shop },
@@ -88,7 +88,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     try {
       const html = generateTokushoHtml(
         { ...config, lastPublishedAt: publishedAt } as any,
-        { hideWatermark: isPaid, applyDesign: isPaid }
+        { hideWatermark: true, applyDesign: isPro }
       );
       const r = await publishPage(admin, session.shop, {
         handle: "tokushoho",
@@ -163,8 +163,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       {
         name: "特定商取引法に基づく表記",
         html: generateTokushoHtml(config as any, {
-          hideWatermark: isPaid,
-          applyDesign: isPaid,
+          hideWatermark: true,
+          applyDesign: isPro,
         }),
       },
       {
@@ -190,7 +190,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const html = generateTokushoHtml(
       { ...config, lastPublishedAt: publishedAt } as any,
-      { hideWatermark: isPaid, applyDesign: isPaid }
+      { hideWatermark: true, applyDesign: isPro }
     );
     const r = await publishPage(admin, session.shop, {
       handle: "tokushoho",

@@ -54,7 +54,7 @@ Note: This app assists with drafting the page and **does not provide legal advic
 ## 5. Feature list（最大5つ・タイトル＋説明）
 1. **法定の表示項目に対応** — 消費者庁ガイドラインで求められる表示項目をフォームで入力。
 2. **数分で作成・ワンクリック公開** — `/pages/tokushoho` に自動でページ作成。
-3. **デザイン・日英併記（Basic）** — アクセントカラー／レイアウト調整、項目名の日英併記。
+3. **デザイン・日英併記（Pro）** — アクセントカラー／レイアウト調整、項目名の日英併記。
 4. **プライバシー・追加ページ・一括生成（Pro）** — プライバシーポリシー／会社概要／お問い合わせ／返品ポリシーをまとめて作成。
 5. **法令変更を検知してお知らせ** — 監視対象の法令データに変更があれば通知し、再公開を促します（検知・通知を補助するもので、適法性の最終確認はご自身で）。
 
@@ -65,7 +65,7 @@ Note: This app assists with drafting the page and **does not provide legal advic
 1. **事業者情報フォーム**（`/app/setup`）— 入力中の画面。キャプション：「フォームに入力するだけ」
 2. **プレビュー画面**（`/app/preview`）— 生成されたページのプレビュー。キャプション：「公開前にプレビュー」
 3. **公開されたストアページ**（`kizuna-digital.myshopify.com/pages/tokushoho`）— 実際の storefront。キャプション：「ストアにワンクリック公開」
-4. （任意）**プラン画面**（`/app/billing`）— Free/Basic/Pro。
+4. （任意）**プラン画面**（`/app/billing`）— Free / Pro。
 5. （任意）**プライバシーポリシー生成**（`/app/privacy`）。
 
 > Tip: 管理画面のスクショは Shopify admin の iframe 内をそのままキャプチャ。テスト商店データ（テスト商店／渋谷区…）で十分。
@@ -81,9 +81,8 @@ Note: This app assists with drafting the page and **does not provide legal advic
 ## 9. Pricing（Partners Dashboard で設定。年額を主・月額を従として登録）
 | プラン | 価格 | 内容 |
 |---|---|---|
-| Free | ¥0 | 特商法ページ生成・公開、法定項目対応、更新／再公開、法令変更のお知らせ（ページ下部に「Powered by Tokusho」表示） |
-| Basic | $39.99/年（または $3.99/月） | 「Powered by Tokusho」表示を削除、デザインカスタマイズ、日英併記、メールサポート |
-| Pro | $79.99/年（または $7.99/月） | プライバシーポリシー生成、追加ページ（会社概要／お問い合わせ／返品ポリシー）、5ページ一括生成、優先サポート |
+| Free | ¥0 | 特商法ページ生成・公開、法定項目対応、Shopify設定からの自動入力、販売形態の自動判定、更新／再公開、法令変更のお知らせ（**ウォーターマークなし**） |
+| Pro | $49.99/年（または $4.99/月） | Freeの全機能＋デザインカスタマイズ、日英併記、プライバシーポリシー生成、追加ページ（会社概要／お問い合わせ／返品ポリシー）、5ページ一括生成、優先サポート |
 
 > ※ 年額は churn 対策として主導線にする方針。Managed Pricing は買い切り非対応のため、買い切りに最も近い「年額」を前面に出す。価格は確定前のため、Dashboard 登録値とアプリ内表示（`app.billing.tsx`）を一致させること。
 
@@ -98,7 +97,7 @@ Note: This app assists with drafting the page and **does not provide legal advic
 - [ ] アイコン 1024×1024 作成
 - [ ] スクリーンショット 3枚以上
 - [ ] Privacy policy をホスト＋URL 設定
-- [ ] Pricing（Free/Basic/Pro）を Dashboard で登録
+- [ ] Pricing（Free / Pro）を Dashboard で登録
 - [ ] 特商法テンプレート文言を専門家レビュー
 - [ ] 利用規約・プライバシーポリシー・非弁（弁護士法72条）の位置づけを弁護士レビュー
 - [ ] App listing 文言の最終確認（誇大表現・「保証」「法令準拠」断定を避ける／「法的助言ではない」旨を明記）

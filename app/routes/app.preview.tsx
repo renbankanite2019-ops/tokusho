@@ -32,12 +32,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect("/app/setup");
   }
 
-  // 有料プラン（Basic以上）でウォーターマーク非表示＋デザイン反映
-  const { isPaid } = await getPlanStatus(billing);
+  // ウォーターマークは全プラン非表示。デザイン反映は Pro プランのみ。
+  const { isPro } = await getPlanStatus(billing);
 
   const html = generateTokushoHtml(config as any, {
-    hideWatermark: isPaid,
-    applyDesign: isPaid,
+    hideWatermark: true,
+    applyDesign: isPro,
   });
   return json({ config, html });
 };
@@ -53,13 +53,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ error: "設定が見つかりません" }, { status: 400 });
   }
 
-  const { isPaid } = await getPlanStatus(billing);
+  const { isPro } = await getPlanStatus(billing);
 
   // 公開時刻を確定し、その時刻を「最終更新日」として埋め込む
   const publishedAt = new Date();
   const html = generateTokushoHtml(
     { ...config, lastPublishedAt: publishedAt } as any,
-    { hideWatermark: isPaid, applyDesign: isPaid }
+    { hideWatermark: true, applyDesign: isPro }
   );
 
   // Shopify Pages API でページを作成/更新

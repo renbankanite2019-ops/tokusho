@@ -19,10 +19,10 @@ import { getPlanStatus, managedPricingUrl } from "../lib/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
-  const { isPaid, isPro, planName } = await getPlanStatus(billing);
+  const { isPro, planName } = await getPlanStatus(billing);
 
-  // ダッシュボードのバッジ表示用に DB の plan を実際の課金状態へ同期
-  const dbPlan = isPro ? "PRO" : isPaid ? "BASIC" : "FREE";
+  // ダッシュボードのバッジ表示用に DB の plan を実際の課金状態へ同期（Free / Pro の2プラン）
+  const dbPlan = isPro ? "PRO" : "FREE";
   await prisma.shopConfig.updateMany({
     where: { shop: session.shop },
     data: { plan: dbPlan },
@@ -40,39 +40,26 @@ const PLAN_DETAILS = [
     key: "FREE",
     name: "Free",
     priceMain: "¥0",
-    priceSub: "永久無料",
+    priceSub: "永久無料・ウォーターマークなし",
     badge: null as string | null,
     features: [
-      "特商法ページの自動生成",
-      "Shopifyストアへの直接公開",
+      "特商法ページの自動生成・公開",
       "法定の表示項目に対応",
-      "ページの更新・再公開",
-    ],
-    limitations: ["ページ下部に「Powered by Tokusho」の表示が入ります"],
-  },
-  {
-    key: "BASIC",
-    name: "Basic",
-    priceMain: "$39.99 / 年",
-    priceSub: "または 月額 $3.99",
-    badge: "年額なら約2ヶ月分お得",
-    features: [
-      "Freeプランのすべての機能",
-      "「Powered by Tokusho」表示を削除",
-      "デザインカスタマイズ（アクセントカラー・レイアウト）",
-      "日英併記（特商法ページ）",
-      "メールサポート",
+      "Shopify設定からの自動入力・販売形態の自動判定",
+      "ページの更新・再公開、法令変更のお知らせ",
     ],
     limitations: [],
   },
   {
     key: "PRO",
     name: "Pro",
-    priceMain: "$79.99 / 年",
-    priceSub: "または 月額 $7.99",
+    priceMain: "$49.99 / 年",
+    priceSub: "または 月額 $4.99",
     badge: "年額なら約2ヶ月分お得",
     features: [
-      "Basicプランのすべての機能",
+      "Freeプランのすべての機能",
+      "デザインカスタマイズ（アクセントカラー・レイアウト）",
+      "日英併記（特商法ページ）",
       "プライバシーポリシー生成・公開",
       "追加ページ生成（会社概要・お問い合わせ・返品ポリシー）",
       "5ページをワンクリックで一括生成",
