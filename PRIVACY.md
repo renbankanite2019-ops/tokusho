@@ -1,103 +1,88 @@
-# Privacy Policy — Tokusho (特定商取引法ページ自動生成アプリ)
+# プライバシーポリシー — Tokusho（特定商取引法ページ自動生成アプリ）
 
-> **DRAFT — requires review before publishing.** This draft is AI-assisted. Have it reviewed by a person (and, for the Japanese market, ideally a 専門家) before you host it and submit it as your App Store privacy policy URL. Verify every statement matches what the app actually does at launch.
+> **DRAFT — 公開前に確認が必要です。** 本ドラフトは AI 支援により作成しています。App Store のプライバシーポリシーURLとして公開・提出する前に、人（日本市場向けには可能であれば専門家）の確認を受けてください。記載内容が、launch 時点のアプリの実際の挙動と一致しているか必ず検証してください。
+>
+> ※ アプリ内で配信している正本は `/legal/privacy`（`app/lib/legalContent.ts`）です。本ファイルはその参照用ドラフトであり、内容を一致させてください。
 
-**Last updated:** 2026-06-20
-**App:** Tokusho
-**Provider:** レーンバンカン (sole proprietor / 個人事業主)
-**Contact:** ren.ban.kan.ite2019@gmail.com
+**制定日：** 2026-06-20
+**アプリ：** Tokusho
+**提供者：** レーンバンカン（個人事業主）
+**お問い合わせ：** ren.ban.kan.ite2019@gmail.com
 
 ---
 
-## 1. Overview
+## 1. 概要
 
-Tokusho ("the App") helps Shopify merchants create and publish a Japanese
-"特定商取引法に基づく表記" (Specified Commercial Transactions Act disclosure)
-page on their own storefront. This policy explains what data the App processes,
-why, and how it is protected.
+「Tokusho」（以下「本アプリ」）は、Shopify ストアを運営する事業者が、「特定商取引法に基づく表記」ページを自身のストアに作成・公開することを補助するアプリです。本ポリシーは、本アプリが取り扱う情報と、その目的、保護方法について説明します。本ポリシーは本アプリの提供者による情報の取扱いに関するものであり、利用者が自身の顧客に対して掲示するプライバシーポリシーとは異なります。
 
-## 2. Data we collect
+## 2. 取得する情報
 
-The App collects only the data needed to generate and publish the disclosure page:
+本アプリは、表記ページの生成・公開に必要な情報のみを取得します。
 
-**a) Shopify store information**
-- Store domain (`*.myshopify.com`)
-- Shopify session and OAuth access token (used to call the Shopify Admin API on your behalf)
+**a) Shopify ストアの情報**
+- ストアドメイン（`*.myshopify.com`）
+- Shopify のセッションおよび OAuth アクセストークン（利用者に代わって Shopify Admin API を呼び出すため）
 
-**b) Business information you enter into the App**
-- Business type (individual / corporation)
-- Seller / corporation name, representative name, person responsible for mail-order sales
-- Postal code, address, building name
-- Phone number, email address, website URL
-- Sales, payment, delivery, return/refund, and other commercial-transaction terms you type in
+**b) 利用者が本アプリに入力する事業者情報**
+- 事業者種別（個人／法人）
+- 販売業者名・法人名、代表者名、通信販売責任者
+- 郵便番号、住所、建物名
+- 電話番号、メールアドレス、ウェブサイトURL
+- 販売・支払・引渡し・返品／返金その他の取引条件
 
-This information is, by design, **published publicly** on your storefront's
-disclosure page — that is the purpose of the App and a legal requirement for
-online sellers in Japan.
+これらの情報は、その性質上、利用者のストアの表記ページ上で**公開**されます。これは本アプリの目的であり、日本でオンライン販売を行う事業者の法的義務です。
 
-## 3. Data we do NOT collect
+## 3. 取得しない情報
 
-- The App does **not** access, store, or process your customers' personal data.
-- The App does **not** read orders, customer records, or payment data.
-- It requests `write_content` and `read_content` (to create/update the disclosure Page)
-  and `read_products`. `read_products` is used only to detect whether the store sells
-  digital goods or subscriptions, so the App can suggest the right disclosure fields;
-  product information is read at that moment only and is **not stored**.
+- 本アプリは、利用者の顧客の個人情報を取得・保存・処理しません。
+- 本アプリは、注文情報、顧客情報、決済情報を読み取りません。
+- 要求する権限（スコープ）は、表記ページの作成・更新のための `write_content` および `read_content`、ならびに `read_products` です。`read_products` は、ストアがデジタル商品や継続課金（サブスクリプション）を扱っているかを判定して適切な表示項目を提案するためにのみ使用し、商品情報はその時点で参照するのみで**保存しません**。
 
-## 4. How we use data
+## 4. 利用目的
 
-- To generate the disclosure-page HTML from the information you enter.
-- To create and update that page on your Shopify storefront via the Shopify Admin API.
-- To remember your settings so you can edit and re-publish later.
+- 利用者の入力に基づき表記ページの内容を生成するため。
+- Shopify Admin API を通じて、利用者のストアに当該ページを作成・更新するため。
+- 利用者が後で編集・再公開できるよう、設定を保存するため。
 
-We do **not** sell your data or use it for advertising.
+当社は、情報を**販売せず**、広告目的にも利用しません。
 
-## 5. Storage and security
+## 5. 保管とセキュリティ
 
-- Data is stored in a PostgreSQL database (Neon).
-- The Shopify access token is stored server-side and is not exposed to the browser.
-- All communication uses HTTPS. Webhooks are verified with Shopify HMAC signatures.
+- 情報はマネージド PostgreSQL データベース（Supabase・東京 / ap-northeast-1 リージョン）に保管します。
+- Shopify のアクセストークンはサーバー側で保管し、ブラウザには公開しません。
+- 通信はすべて HTTPS で行います。Webhook は Shopify の HMAC 署名で検証します。
 
-## 6. Third parties
+## 6. 第三者（委託先）
 
-The App relies on these service providers to operate:
-- **Shopify** — platform, authentication, and the Admin API.
-- **Supabase** — database hosting (PostgreSQL, Tokyo / ap-northeast-1 region).
-- **Google Cloud Run** — application hosting (Tokyo / asia-northeast1 region).
-- **e-Gov 法令API (Digital Agency, Japan)** — queried to detect changes to monitored laws (no personal data is sent).
-- **Resend** — transactional email delivery for operator notifications (only if configured).
+本アプリの運用のため、以下のサービスを利用します。各社はそれぞれのサービス提供に必要な範囲でのみ情報を取り扱います。
 
-Each processes data only to provide their service. Review their respective
-privacy policies for details.
+- **Shopify** — プラットフォーム、認証、Admin API。
+- **Supabase** — データベースのホスティング（PostgreSQL、東京 / ap-northeast-1 リージョン）。
+- **Google Cloud Run** — アプリケーションのホスティング（東京 / asia-northeast1 リージョン）。
+- **e-Gov 法令API（デジタル庁）** — 監視対象の法令の変更検知のために参照（個人情報は送信しません）。
+- **Resend** — 運営者向け通知メールの送信（設定されている場合のみ）。
 
-## 7. Data retention and deletion
+詳細は各社のプライバシーポリシーをご確認ください。
 
-- When you uninstall the App, your Shopify session is deleted.
-- When Shopify sends a `shop/redact` request (about 48 hours after uninstall),
-  your stored business configuration is deleted.
-- You can request deletion of your data at any time by contacting us.
-- The disclosure page already published to your storefront is your store content;
-  manage or delete it from your Shopify admin.
+## 7. 保存期間と削除
 
-## 8. GDPR / APPI compliance
+- 本アプリをアンインストールすると、利用者の Shopify セッションを削除します。
+- Shopify から `shop/redact` リクエスト（アンインストールの約48時間後）を受信した時点で、保存している事業者設定情報を削除します。
+- 利用者は、下記のお問い合わせ先より、いつでもデータの削除を請求できます。
+- すでにストアに公開された表記ページは利用者のストアのコンテンツです。Shopify 管理画面から管理・削除してください。
 
-The App implements Shopify's mandatory compliance webhooks
-(`customers/data_request`, `customers/redact`, `shop/redact`). Because the App
-does not store end-customer personal data, customer data requests and redactions
-have no customer data to return or delete; shop redaction deletes your stored
-configuration as described above.
+## 8. 法令遵守（個人情報保護法 / Shopify 必須 Webhook）
 
-## 9. Your responsibilities
+本アプリは、Shopify が必須とするコンプライアンス Webhook（`customers/data_request`、`customers/redact`、`shop/redact`）に対応しています。本アプリは利用者の顧客の個人情報を保存しないため、顧客データの開示・削除請求に対して返却・削除すべき顧客データは存在しません。shop/redact では、上記のとおり保存している設定情報を削除します。
 
-The App assists with drafting the disclosure page from the information you provide.
-**You are responsible for the legal accuracy and completeness of your page.**
-Consult a qualified professional (専門家) if you need to confirm compliance.
+## 9. 利用者の責任
 
-## 10. Changes to this policy
+本アプリは、利用者が提供する情報をもとに表記ページの作成を補助するものです。**ページ内容の法的な正確性・完全性の確認は利用者の責任において行ってください。** 適合性の確認が必要な場合は、弁護士等の専門家にご相談ください。
 
-We may update this policy. Material changes will be reflected by the "Last updated"
-date above.
+## 10. 本ポリシーの変更
 
-## 11. Contact
+当社は本ポリシーを変更することがあります。重要な変更は、上記の「制定日」を更新することで反映します。
 
-Questions about this policy: ren.ban.kan.ite2019@gmail.com
+## 11. お問い合わせ
+
+本ポリシーに関するお問い合わせ：ren.ban.kan.ite2019@gmail.com
