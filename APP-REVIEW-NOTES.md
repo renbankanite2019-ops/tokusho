@@ -32,6 +32,7 @@ This app uses **Shopify Managed Pricing** — the plan selection page is hosted 
 3. Choose a plan and approve it. **On a development/test store this is a test charge — you are not billed.**
    - **Basic** ($39.99/yr or $3.99/mo) — removes the "Powered by Tokusho" footer; enables design customization (accent color / layout) and JA/EN bilingual labels.
    - **Pro** ($79.99/yr or $7.99/mo) — adds the Privacy Policy generator, additional pages (会社概要 / お問い合わせ / 返品ポリシー), and one-click "generate all 5 pages".
+   - **To test all Pro-only features end-to-end, select the Pro plan.** On a development/test store this is a **test charge (no real billing)** and unlocks every Pro feature — no separate account or credentials are needed.
 4. After approving, you are returned to the app. Verify:
    - **Basic+**: re-publish the 特商法 page (Preview → Publish) → the "Powered by Tokusho" footer is gone and the chosen accent color / layout / bilingual labels are applied.
    - **Pro**: the **プライバシーポリシー** and **追加ページ** menus become usable (on Free/Basic they show a Pro upsell screen, by design), and the dashboard's **5ページ一括生成** (generate all pages) becomes available.
