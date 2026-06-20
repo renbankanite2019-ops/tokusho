@@ -10,8 +10,9 @@ Tokusho generates the Japanese **「特定商取引法に基づく表記」** (S
 The UI is in **Japanese** (target market: Japan).
 
 ## Access scopes / data usage
-- Scopes requested: **`write_content`, `read_content` only** (to create/update a Shopify Page).
-- The app does **NOT** access orders, customers, products, or any **protected customer data**.
+- Scopes requested: **`write_content`, `read_content`** (to create/update a Shopify Page) and **`read_products`**.
+- `read_products` is used only to detect whether the store sells digital goods or subscriptions (reads `variants.requiresShipping` and `sellingPlanGroups`) so the setup form can suggest the right disclosure fields. Product data is read at that moment only and is **not stored**.
+- The app does **NOT** access orders, customers, payment data, or any **protected customer data**.
 - It stores only the merchant's own business/shop configuration (name, address, phone, email, policies), keyed by shop domain.
 
 ## How to test (core flow — Free plan)
@@ -24,15 +25,17 @@ The UI is in **Japanese** (target market: Japan).
 5. Visit `https://<your-test-store>.myshopify.com/pages/tokushoho` — the disclosure page is live.
    - On the **Free** plan, the page shows a small **"Powered by Tokusho"** line in the footer.
 
-## How to test billing
+## How to test billing (Shopify Managed Pricing)
+This app uses **Shopify Managed Pricing** — the plan selection page is hosted by Shopify, not built into the app. The app does not call the Billing API.
 1. Open **プラン・お支払い** (Plans & Billing) — or `/app/billing`.
-2. Plans:
-   - **Basic ($3.99/mo)** — removes the "Powered by Tokusho" footer.
-   - **Pro ($7.99/mo)** — unlocks the Privacy Policy generator.
-3. Click **アップグレード** (Upgrade) → a Shopify subscription approval screen appears. **During review this is a test charge — you are not charged.** Approve it.
-4. Verify:
-   - After **Basic+**: re-publish the page (step 4 above) → the "Powered by Tokusho" footer is gone.
-   - After **Pro**: open **プライバシーポリシー** (Privacy Policy) → the generator form is now accessible. Fill it and publish → page appears at `/pages/privacy-policy`. (On Free/Basic this menu shows a Pro upsell screen, by design.)
+2. Click **プランを選択・変更する** (Select / change plan). You are redirected (at the top level, out of the embedded frame) to Shopify's plan selection page for this app.
+3. Choose a plan and approve it. **On a development/test store this is a test charge — you are not billed.**
+   - **Basic** ($39.99/yr or $3.99/mo) — removes the "Powered by Tokusho" footer; enables design customization (accent color / layout) and JA/EN bilingual labels.
+   - **Pro** ($79.99/yr or $7.99/mo) — adds the Privacy Policy generator, additional pages (会社概要 / お問い合わせ / 返品ポリシー), and one-click "generate all 5 pages".
+4. After approving, you are returned to the app. Verify:
+   - **Basic+**: re-publish the 特商法 page (Preview → Publish) → the "Powered by Tokusho" footer is gone and the chosen accent color / layout / bilingual labels are applied.
+   - **Pro**: the **プライバシーポリシー** and **追加ページ** menus become usable (on Free/Basic they show a Pro upsell screen, by design), and the dashboard's **5ページ一括生成** (generate all pages) becomes available.
+   - The privacy page is published at `/pages/privacy-policy`.
 
 ## Mandatory compliance (GDPR) webhooks
 Implemented at `/webhooks`: `customers/data_request`, `customers/redact`, `shop/redact`, `app/uninstalled`.
