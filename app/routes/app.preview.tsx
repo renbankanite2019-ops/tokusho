@@ -299,6 +299,33 @@ export default function Preview() {
                   </Button>
                 </Form>
               </InlineStack>
+
+              {/* 下部ボタンで公開した直後、上までスクロールしなくても結果が見えるように
+                  ここにも公開結果と「ページを表示」ボタンを表示する */}
+              {actionData && "success" in actionData && actionData.success && (
+                <Banner
+                  title="公開しました！"
+                  tone="success"
+                  action={{
+                    content: "ページを表示",
+                    onAction: () => {
+                      if (actionData.pageUrl)
+                        window.open(
+                          actionData.pageUrl,
+                          "_blank",
+                          "noopener,noreferrer"
+                        );
+                    },
+                  }}
+                >
+                  <p>
+                    ストアに公開されました。
+                    {actionData.pageUrl && (
+                      <> URL: <strong>{actionData.pageUrl}</strong></>
+                    )}
+                  </p>
+                </Banner>
+              )}
             </BlockStack>
           </Card>
         </Layout.Section>
