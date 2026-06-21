@@ -138,7 +138,7 @@ export function generateTokushoHtml(
     `;
   } else {
     returnPolicyText = `
-      <table>
+      <table class="tokusho-subtable">
         <tr><th>返品期限</th><td>${escapeHtml(returnDeadline)}</td></tr>
         <tr><th>返品条件</th><td>${escapeHtml(returnCondition)}</td></tr>
         <tr><th>返品送料</th><td>${escapeHtml(SHIPPING_BURDEN_LABELS[returnShipping] || returnShipping)}</td></tr>
@@ -293,6 +293,31 @@ export function generateTokushoHtml(
   text-align: center;
   color: #999;
   font-size: 0.8em;
+}
+/* 返品セクション内のサブ表：ラベルを軽く・省スペースにする（メインの見出しと差をつける） */
+.tokusho-table td .tokusho-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: -4px 0;
+}
+.tokusho-table td .tokusho-subtable th,
+.tokusho-table td .tokusho-subtable td {
+  border: none;
+  border-bottom: 1px solid #eee;
+  padding: 7px 0;
+  vertical-align: top;
+}
+.tokusho-table td .tokusho-subtable tr:last-child th,
+.tokusho-table td .tokusho-subtable tr:last-child td {
+  border-bottom: none;
+}
+.tokusho-table td .tokusho-subtable th {
+  background: transparent;
+  color: inherit;
+  width: 96px;
+  white-space: nowrap;
+  font-weight: 600;
+  padding-right: 14px;
 }
 @media (max-width: 600px) {
   .tokusho-table th {
