@@ -256,49 +256,30 @@ function PresetField({
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
-  const config = await prisma.shopConfig.findUnique({
-    where: { shop: session.shop },
-  });
 
   // Shopifyストアの設定から事業者情報の下書きを取得する（Excelには真似できない自動入力）。
-  // 取得に失敗してもフォームは表示できるよう、エラーは握りつぶして prefill=null とする。
-  let prefill: {
-    sellerName: string;
-    postalCode: string;
-    prefecture: string;
-    address: string;
-    buildingName: string;
-    phone: string;
-    email: string;
-    websiteUrl: string;
-  } | null = null;
-  try {
-    const res = await admin.graphql(
-      `#graphql
-      query shopInfo {
-        shop {
-          name
-          email
-          contactEmail
-          billingAddress {
-            address1
-            address2
-            city
-            province
-            provinceCode
-            zip
-            phone
-            company
+  // 取得に失敗してもフォームは表示できるよう、エラーは握りつぶして null とする。
+  const fetchPrefill = async () => {
+    try {
+      const res = await admin.graphql(
+        `#graphql
+        query shopInfo {
+          shop {
+            name
+            email
+            contactEmail
+            billingAddress {
+              address1 address2 city province provinceCode zip phone company
+            }
+            primaryDomain { url }
           }
-          primaryDomain { url }
-        }
-      }`
-    );
-    const d = await res.json();
-    const s = d.data?.shop;
-    if (s) {
+        }`
+      );
+      const d = await res.json();
+      const s = d.data?.shop;
+      if (!s) return null;
       const a = s.billingAddress ?? {};
-      prefill = {
+      return {
         sellerName: s.name || a.company || "",
         postalCode: a.zip || "",
         prefecture: toKanjiPrefecture(a.province, a.provinceCode),
@@ -308,35 +289,44 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         email: s.contactEmail || s.email || "",
         websiteUrl: s.primaryDomain?.url || "",
       };
+    } catch (e) {
+      console.error("[setup] shop info fetch failed:", e);
+      return null;
     }
-  } catch (e) {
-    console.error("[setup] shop info fetch failed:", e);
-  }
+  };
 
-  // ストアの商品から販売形態を推測する（デジタル商品・サブスクの有無）。
-  // read_products スコープが無い場合は失敗するが、フォームには影響させない。
+  // DB取得とストア情報取得を並列化して初回表示を速くする。
+  const [config, prefill] = await Promise.all([
+    prisma.shopConfig.findUnique({ where: { shop: session.shop } }),
+    fetchPrefill(),
+  ]);
+
+  // 販売形態の自動判定（read_products）は初回設定時のみ実行し、
+  // 編集時は不要なAPI呼び出しを省いて高速化する。
   let detected = { digital: false, subscription: false };
-  try {
-    const res = await admin.graphql(
-      `#graphql
-      query detectTypes {
-        products(first: 30) {
-          nodes { variants(first: 1) { nodes { requiresShipping } } }
-        }
-        sellingPlanGroups(first: 1) { nodes { id } }
-      }`
-    );
-    const d = await res.json();
-    const nodes = d.data?.products?.nodes ?? [];
-    const digitalCount = nodes.filter(
-      (p: any) => p.variants?.nodes?.[0]?.requiresShipping === false
-    ).length;
-    detected = {
-      digital: nodes.length > 0 && digitalCount > 0,
-      subscription: (d.data?.sellingPlanGroups?.nodes?.length ?? 0) > 0,
-    };
-  } catch (e) {
-    console.error("[setup] product detection failed (read_products scope?):", e);
+  if (!config) {
+    try {
+      const res = await admin.graphql(
+        `#graphql
+        query detectTypes {
+          products(first: 30) {
+            nodes { variants(first: 1) { nodes { requiresShipping } } }
+          }
+          sellingPlanGroups(first: 1) { nodes { id } }
+        }`
+      );
+      const d = await res.json();
+      const nodes = d.data?.products?.nodes ?? [];
+      const digitalCount = nodes.filter(
+        (p: any) => p.variants?.nodes?.[0]?.requiresShipping === false
+      ).length;
+      detected = {
+        digital: nodes.length > 0 && digitalCount > 0,
+        subscription: (d.data?.sellingPlanGroups?.nodes?.length ?? 0) > 0,
+      };
+    } catch (e) {
+      console.error("[setup] product detection failed (read_products scope?):", e);
+    }
   }
 
   return json({ config, prefill, detected });

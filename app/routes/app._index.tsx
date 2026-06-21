@@ -38,13 +38,13 @@ import { getPlanStatus } from "../lib/billing";
 import { publishPage } from "../lib/publishPage";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session, billing } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const [config, { isPro }] = await Promise.all([
-    prisma.shopConfig.findUnique({ where: { shop } }),
-    getPlanStatus(billing),
-  ]);
+  // ダッシュボードはDBのplanで表示する（Shopifyへの課金確認APIを呼ばず高速化）。
+  // 実際の機能ゲートは action 側で getPlanStatus によりライブ確認する。
+  const config = await prisma.shopConfig.findUnique({ where: { shop } });
+  const isPro = config?.plan === "PRO";
 
   const errors = config ? validateConfig(config) : ["まだ情報が入力されていません"];
 
