@@ -428,8 +428,10 @@ export default function Index() {
                   </Text>
 
                   {isComplete ? (
-                    <InlineStack gap="200" align="start" blockAlign="center" wrap={false}>
-                      <Icon source={CheckCircleIcon} tone="success" />
+                    <InlineStack gap="100" align="start" blockAlign="center" wrap={false}>
+                      <span style={{ display: "inline-flex", flex: "0 0 auto" }}>
+                        <Icon source={CheckCircleIcon} tone="success" />
+                      </span>
                       <Text as="p" tone="success">
                         すべての必須項目が入力されています
                       </Text>
@@ -437,8 +439,10 @@ export default function Index() {
                   ) : (
                     <BlockStack gap="200">
                       {errors.map((error, i) => (
-                        <InlineStack key={i} gap="200" align="start" blockAlign="center" wrap={false}>
-                          <Icon source={AlertCircleIcon} tone="caution" />
+                        <InlineStack key={i} gap="100" align="start" blockAlign="center" wrap={false}>
+                          <span style={{ display: "inline-flex", flex: "0 0 auto" }}>
+                            <Icon source={AlertCircleIcon} tone="caution" />
+                          </span>
                           <Text as="p" tone="caution">
                             {error}
                           </Text>
