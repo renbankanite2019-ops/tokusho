@@ -674,6 +674,7 @@ export default function Setup() {
                     value={fields.sellerName}
                     onChange={setField("sellerName")}
                     autoComplete="organization"
+                    placeholder="例：株式会社サンプル / サンプルショップ"
                     helpText="登記上の法人名または屋号を入力してください"
                   />
 
@@ -684,7 +685,7 @@ export default function Setup() {
                       value={fields.representativeName}
                       onChange={setField("representativeName")}
                       autoComplete="name"
-                      helpText="例：山田 太郎"
+                      placeholder="例：山田 太郎"
                     />
                   )}
 
@@ -694,6 +695,7 @@ export default function Setup() {
                     value={fields.responsibleName}
                     onChange={setField("responsibleName")}
                     autoComplete="name"
+                    placeholder="例：山田 太郎"
                     helpText="代表者と異なる場合のみ入力"
                   />
                 </FormLayout>
@@ -716,7 +718,7 @@ export default function Setup() {
                       value={fields.postalCode}
                       onChange={setField("postalCode")}
                       autoComplete="postal-code"
-                      placeholder="000-0000"
+                      placeholder="例：150-0001"
                     />
                     <TextField
                       label="都道府県"
@@ -724,7 +726,7 @@ export default function Setup() {
                       value={fields.prefecture}
                       onChange={setField("prefecture")}
                       autoComplete="address-level1"
-                      placeholder="東京都"
+                      placeholder="例：東京都"
                     />
                   </FormLayout.Group>
 
@@ -734,7 +736,7 @@ export default function Setup() {
                     value={fields.address}
                     onChange={setField("address")}
                     autoComplete="street-address"
-                    placeholder="渋谷区渋谷1-1-1"
+                    placeholder="例：渋谷区渋谷1-1-1"
                   />
 
                   <TextField
@@ -743,7 +745,7 @@ export default function Setup() {
                     value={fields.buildingName}
                     onChange={setField("buildingName")}
                     autoComplete="address-line2"
-                    placeholder="○○ビル 101号"
+                    placeholder="例：○○ビル 101号"
                   />
 
                   <TextField
@@ -753,7 +755,7 @@ export default function Setup() {
                     onChange={setField("phone")}
                     autoComplete="tel"
                     type="tel"
-                    placeholder="03-0000-0000"
+                    placeholder="例：03-1234-5678"
                     helpText="お客様からのお問い合わせ用の電話番号"
                   />
 
@@ -764,7 +766,7 @@ export default function Setup() {
                     onChange={setField("email")}
                     autoComplete="email"
                     type="email"
-                    placeholder="info@example.com"
+                    placeholder="例：info@example.com"
                   />
 
                   <TextField
@@ -773,7 +775,7 @@ export default function Setup() {
                     value={fields.websiteUrl}
                     onChange={setField("websiteUrl")}
                     autoComplete="url"
-                    placeholder="https://example.com"
+                    placeholder="例：https://example.com"
                   />
                 </FormLayout>
               </BlockStack>
@@ -816,6 +818,7 @@ export default function Setup() {
                     value={fields.otherCosts}
                     onChange={setField("otherCosts")}
                     autoComplete="off"
+                    placeholder="例：コンビニ払い手数料 220円、代引手数料 330円"
                     helpText="コンビニ払い手数料、代引き手数料など。なければ空白"
                     multiline={2}
                   />
@@ -851,6 +854,7 @@ export default function Setup() {
                     onChange={setField("applicationPeriod")}
                     autoComplete="off"
                     multiline={2}
+                    placeholder="例：予約商品（発送は2026年7月予定）／数量限定・なくなり次第終了"
                     helpText="期間限定販売・予約販売など、申込みに期限がある場合のみ記載"
                   />
                 </FormLayout>
@@ -910,6 +914,7 @@ export default function Setup() {
                     onChange={setField("returnNote")}
                     autoComplete="off"
                     multiline={3}
+                    placeholder="例：セール品・カスタムオーダー品は返品をお受けできません"
                     helpText="セール品・カスタム品の返品不可など"
                   />
 
@@ -948,6 +953,7 @@ export default function Setup() {
                         onChange={setField("softwareRequirements")}
                         autoComplete="off"
                         multiline={2}
+                        placeholder="例：対応OS Windows 10以降 / ブラウザ Chrome・Safari 最新版"
                         helpText="対応OS・ブラウザ・必要スペック等。デジタル商品販売時は必須です"
                       />
                       <Banner tone="warning">
@@ -975,6 +981,7 @@ export default function Setup() {
                       onChange={setField("subscriptionTerms")}
                       autoComplete="off"
                       multiline={2}
+                      placeholder="例：毎月1日に課金。解約はマイページからいつでも可能（最低利用期間なし）"
                       helpText="課金サイクル・解約方法・最低利用期間等。継続課金販売時は必須です"
                     />
                   )}
@@ -986,6 +993,7 @@ export default function Setup() {
                     onChange={setField("specialConditions")}
                     autoComplete="off"
                     multiline={2}
+                    placeholder="例：会員限定販売、数量限定（先着50名）"
                     helpText="数量限定・会員限定など特別な条件がある場合"
                   />
 
@@ -996,6 +1004,7 @@ export default function Setup() {
                     onChange={setField("contactNote")}
                     autoComplete="off"
                     multiline={2}
+                    placeholder="例：受付時間 平日10:00〜17:00（土日祝を除く）"
                     helpText="対応時間・対応言語など"
                   />
                 </FormLayout>
