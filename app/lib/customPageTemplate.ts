@@ -70,17 +70,19 @@ export function defaultBody(type: PageType, c: ShopConfig | null): string {
     .join("\n");
 }
 
-/** ページ本文（プレーンテキスト）を安全な HTML にして公開用に整形する */
-export function renderCustomPageHtml(title: string, body: string): string {
+/**
+ * ページ本文（プレーンテキスト）を安全な HTML にして公開用に整形する。
+ * 見出し（タイトル）は Shopify のテーマがページタイトルとして表示するため、
+ * 本文側には出力しない（重複防止）。title はシグネチャ互換のため残す。
+ */
+export function renderCustomPageHtml(_title: string, body: string): string {
   const safeBody = escapeHtml(body).replace(/\n/g, "<br>");
   return `
 <div class="custom-page">
-  <h1>${escapeHtml(title)}</h1>
   <div class="custom-page-body">${safeBody}</div>
 </div>
 <style>
 .custom-page { max-width: 800px; margin: 0 auto; padding: 20px; font-family: sans-serif; line-height: 1.9; }
-.custom-page h1 { font-size: 1.5em; margin-bottom: 16px; }
 </style>
 `.trim();
 }

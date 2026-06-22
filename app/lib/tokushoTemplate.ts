@@ -193,7 +193,6 @@ export function generateTokushoHtml(
 
   return `
 <div class="tokusho-container">
-  <h1>特定商取引法に基づく表記</h1>
   <p class="tokusho-updated">最終更新日：${now}</p>
 
   <table class="tokusho-table">

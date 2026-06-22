@@ -103,7 +103,6 @@ export function generatePrivacyHtml(
 
   return `
 <div class="pp-container">
-  <h1>プライバシーポリシー（個人情報保護方針）</h1>
   <p class="pp-updated">最終更新日：${now}</p>
 
   <p>${operator}（以下「当店」といいます）は、お客様の個人情報の重要性を認識し、
