@@ -30,11 +30,9 @@ export function privacyHtml(): string {
   </ul>
 
   <h2>3. 取得しない情報</h2>
-  <p>本アプリは、利用者の顧客の個人情報、注文情報、決済情報を取得・保存・処理しません。
-  本アプリが要求する権限（スコープ）は、表記ページの作成・更新のための <code>write_content</code> および
-  <code>read_content</code>、ならびに <code>read_products</code> です。<code>read_products</code> は、
-  ストアがデジタル商品や継続課金（サブスクリプション）を扱っているかを判定し、適切な表示項目を提案するため
-  にのみ使用し、商品情報はその時点で参照するのみで<strong>保存しません</strong>。</p>
+  <p>本アプリは、利用者の顧客の個人情報、注文情報、商品情報、決済情報を取得・保存・処理しません。
+  本アプリが要求する権限（スコープ）は、表記ページ等の作成・更新のための <code>write_content</code> および
+  <code>read_content</code> のみです。</p>
 
   <h2>4. 利用目的</h2>
   <p>取得した情報は、利用者の入力に基づく表記ページの生成、Shopify Admin API を通じた当該ページの作成・更新、

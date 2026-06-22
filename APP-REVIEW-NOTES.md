@@ -10,9 +10,8 @@ Tokusho generates the Japanese **「特定商取引法に基づく表記」** (S
 The UI is in **Japanese** (target market: Japan).
 
 ## Access scopes / data usage
-- Scopes requested: **`write_content`, `read_content`** (to create/update a Shopify Page) and **`read_products`**.
-- `read_products` is used only to detect whether the store sells digital goods or subscriptions (reads `variants.requiresShipping` and `sellingPlanGroups`) so the setup form can suggest the right disclosure fields. Product data is read at that moment only and is **not stored**.
-- The app does **NOT** access orders, customers, payment data, or any **protected customer data**.
+- Scopes requested: **`write_content`, `read_content` only** (to create/update a Shopify Page).
+- The app does **NOT** access orders, customers, products, payment data, or any **protected customer data**.
 - It stores only the merchant's own business/shop configuration (name, address, phone, email, policies), keyed by shop domain.
 
 ## How to test (core flow — Free plan)

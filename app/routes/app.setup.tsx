@@ -301,39 +301,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     fetchPrefill(),
   ]);
 
-  // 販売形態の自動判定（read_products）は初回設定時のみ実行し、
-  // 編集時は不要なAPI呼び出しを省いて高速化する。
-  let detected = { digital: false, subscription: false };
-  if (!config) {
-    try {
-      const res = await admin.graphql(
-        `#graphql
-        query detectTypes {
-          products(first: 30) {
-            nodes { variants(first: 1) { nodes { requiresShipping } } }
-          }
-          sellingPlanGroups(first: 1) { nodes { id } }
-        }`
-      );
-      const d = await res.json();
-      const nodes = d.data?.products?.nodes ?? [];
-      const digitalCount = nodes.filter(
-        (p: any) => p.variants?.nodes?.[0]?.requiresShipping === false
-      ).length;
-      detected = {
-        digital: nodes.length > 0 && digitalCount > 0,
-        subscription: (d.data?.sellingPlanGroups?.nodes?.length ?? 0) > 0,
-      };
-    } catch (e) {
-      console.error("[setup] product detection failed (read_products scope?):", e);
-    }
-  }
-
   // メール送信が実際に可能（独自ドメインを Resend に設定済み）なときだけ
   // 法令アップデートのメール通知オプションを表示する。
   const merchantEmailEnabled = !!process.env.MAIL_FROM;
 
-  return json({ config, prefill, detected, merchantEmailEnabled });
+  return json({ config, prefill, merchantEmailEnabled });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -394,7 +366,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Setup() {
-  const { config, prefill, detected, merchantEmailEnabled } =
+  const { config, prefill, merchantEmailEnabled } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -540,10 +512,6 @@ export default function Setup() {
   if (returnPolicy[0] === "NO_RETURN" && !fields.returnNote.trim())
     liveWarnings.push("返品不可の場合は、その旨と理由を明記することが推奨されます");
 
-  // 推測した販売形態のうち、まだ反映されていないものだけ提案する。
-  const suggestDigital = detected.digital && !sellsDigital;
-  const suggestSubscription = detected.subscription && !sellsSubscription;
-
   return (
     <Page
       title="事業者情報を入力"
@@ -596,32 +564,6 @@ export default function Setup() {
                   selected={salesType}
                   onChange={applySalesType}
                 />
-                {(suggestDigital || suggestSubscription) && (
-                  <Banner tone="info">
-                    <BlockStack gap="200">
-                      {suggestDigital && (
-                        <InlineStack align="space-between" blockAlign="center" gap="300">
-                          <Text as="p" variant="bodyMd">
-                            🔍 ストアにデジタル商品（配送不要）が見つかりました。
-                          </Text>
-                          <Button onClick={() => applySalesType(["digital"])}>
-                            デジタル商品に設定
-                          </Button>
-                        </InlineStack>
-                      )}
-                      {suggestSubscription && (
-                        <InlineStack align="space-between" blockAlign="center" gap="300">
-                          <Text as="p" variant="bodyMd">
-                            🔍 サブスク（定期購入）の設定が見つかりました。
-                          </Text>
-                          <Button onClick={() => applySalesType(["subscription"])}>
-                            サブスクに設定
-                          </Button>
-                        </InlineStack>
-                      )}
-                    </BlockStack>
-                  </Banner>
-                )}
                 {prefill && (
                   <Box
                     background="bg-surface-secondary"

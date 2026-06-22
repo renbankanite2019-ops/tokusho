@@ -1,6 +1,6 @@
 Tokusho generates the Japanese "特定商取引法に基づく表記" (legal disclosure) page from a form and publishes it to the merchant's storefront. No separate account is needed — it uses Shopify session auth only.
 
-Scopes: write_content + read_content (create/update a Page) and read_products (only to detect digital/subscription products and suggest the right fields; not stored). No access to orders, customers, or payment data.
+Scopes: write_content + read_content only (create/update a Page). No access to orders, customers, products, or payment data.
 
 SETUP & PUBLISH
 1. Open the app → 事業者情報 (Business info).

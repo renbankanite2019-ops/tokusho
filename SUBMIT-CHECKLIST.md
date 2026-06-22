@@ -18,10 +18,9 @@
 - ⚠️ **[BLOCKER] `SHOPIFY_BILLING_TEST` を `false`（または削除）** にする（本番で実課金が計上されるように）
 
 ## C. スコープ / 権限
-- ⚠️ **read_products の扱いを決定**:
-  - 残す場合 → Cloud Run `SCOPES` に `read_products` を追加 + `shopify app deploy` + 再インストール（審査で用途を聞かれる：デジタル/サブスク判定のみ・非保存）
-  - 使わない場合 → toml から `read_products` を外す（販売形態の自動判定機能は無効化）
-- ✅ 顧客個人データ非取得（Protected Customer Data 審査を回避）
+- ✅ **read_products は削除済み**（販売形態の自動判定は廃止／自動入力は `shop` クエリで継続）。スコープは最小 `write_content, read_content` のみ
+- ❓ Cloud Run `SCOPES` 環境変数が `write_content,read_content`（read_products を含まない）であることを確認
+- ✅ 顧客個人データ・商品データ非取得（Protected Customer Data 審査を回避）
 
 ## D. App listing コンテンツ
 - ⚠️ アプリ名 / タグライン / 説明文（`LISTING.md`、誇大・「保証」表現を避ける）最終確認
@@ -63,7 +62,6 @@
 ### 提出までの最短ルート（ブロッカーのみ）
 1. `prisma migrate deploy`（A）
 2. 本番 Free/Pro プラン作成（B）＋ `SHOPIFY_BILLING_TEST=false`（B）
-3. read_products を残すか決定（C）
-4. スクショ3枚＋アイコン（D）／審査情報入力（E）
-5. **弁護士レビュー（G）＋ 提供者自身の特商法表記（G）** ← 商用前に必須
-6. 秘密情報ローテーション確認（H）
+3. スクショ3枚＋アイコン（D）／審査情報入力（E）
+4. **弁護士レビュー（G）＋ 提供者自身の特商法表記（G）** ← 商用前に必須
+5. 秘密情報ローテーション確認（H）
