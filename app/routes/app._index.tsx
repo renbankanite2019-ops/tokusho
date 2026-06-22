@@ -17,6 +17,7 @@ import {
   Box,
   Icon,
   List,
+  Divider,
 } from "@shopify/polaris";
 import { CheckCircleIcon, AlertCircleIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
@@ -31,6 +32,7 @@ import { generatePrivacyHtml } from "../lib/privacyTemplate";
 import {
   PAGE_TYPES,
   PAGE_TYPE_LIST,
+  isPageType,
   defaultBody,
   renderCustomPageHtml,
 } from "../lib/customPageTemplate";
@@ -43,7 +45,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // ダッシュボードはDBのplanで表示する（Shopifyへの課金確認APIを呼ばず高速化）。
   // 実際の機能ゲートは action 側で getPlanStatus によりライブ確認する。
-  const config = await prisma.shopConfig.findUnique({ where: { shop } });
+  const [config, privacy, customPages] = await Promise.all([
+    prisma.shopConfig.findUnique({ where: { shop } }),
+    prisma.privacyConfig.findUnique({ where: { shop } }),
+    prisma.customPage.findMany({ where: { shop } }),
+  ]);
   const isPro = config?.plan === "PRO";
 
   const errors = config ? validateConfig(config) : ["まだ情報が入力されていません"];
@@ -56,7 +62,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   );
   const latestChange = TEMPLATE_CHANGELOG[0] ?? null;
 
-  return json({ config, errors, shop, isPro, isOutdated, latestChange });
+  // 公開中の全ページ（特商法・プライバシー・追加ページ）をURL付きで一覧化する。
+  const publishedPages: { name: string; url: string }[] = [];
+  if (config?.isPublished && config.pageUrl) {
+    publishedPages.push({ name: "特定商取引法に基づく表記", url: config.pageUrl });
+  }
+  if (privacy?.isPublished && privacy.pageUrl) {
+    publishedPages.push({ name: "プライバシーポリシー", url: privacy.pageUrl });
+  }
+  for (const cp of customPages) {
+    if (cp.isPublished && cp.pageUrl && isPageType(cp.pageType)) {
+      publishedPages.push({ name: PAGE_TYPES[cp.pageType].title, url: cp.pageUrl });
+    }
+  }
+
+  return json({ config, errors, shop, isPro, isOutdated, latestChange, publishedPages });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -290,7 +310,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  const { config, errors, isPro, isOutdated, latestChange } =
+  const { config, errors, isPro, isOutdated, latestChange, publishedPages } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -346,6 +366,41 @@ export default function Index() {
             </Banner>
           )}
         </Layout.Section>
+
+        {/* 公開中のページ一覧（全ページの表示リンク） */}
+        {publishedPages.length > 0 && (
+          <Layout.Section>
+            <Card>
+              <BlockStack gap="300">
+                <Text as="h2" variant="headingMd">
+                  公開中のページ（{publishedPages.length}）
+                </Text>
+                <BlockStack gap="200">
+                  {publishedPages.map((p, i) => (
+                    <div key={i}>
+                      <InlineStack align="space-between" blockAlign="center" gap="300">
+                        <Text as="span" variant="bodyMd">{p.name}</Text>
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: "#005bd3", textDecoration: "none", fontSize: 13, whiteSpace: "nowrap" }}
+                        >
+                          表示する →
+                        </a>
+                      </InlineStack>
+                      {i < publishedPages.length - 1 && (
+                        <Box paddingBlockStart="200">
+                          <Divider />
+                        </Box>
+                      )}
+                    </div>
+                  ))}
+                </BlockStack>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        )}
 
         {/* 法令・テンプレート更新の通知 */}
         {republished && (
