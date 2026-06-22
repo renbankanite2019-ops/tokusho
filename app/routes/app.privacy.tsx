@@ -240,6 +240,15 @@ export default function Privacy() {
   const setField = (key: keyof typeof fields) => (value: string) =>
     setFields((prev) => ({ ...prev, [key]: value }));
 
+  // 事業者情報（特商法設定）から事業者名・連絡先を再取込する。
+  const importFromConfig = () => {
+    setFields((prev) => ({
+      ...prev,
+      operatorName: shopConfig?.sellerName || prev.operatorName,
+      contactEmail: shopConfig?.email || prev.contactEmail,
+    }));
+  };
+
   if (!isPro) {
     return (
       <Page title="プライバシーポリシー生成" backAction={{ content: "ダッシュボード", url: "/app" }}>
@@ -332,7 +341,10 @@ export default function Privacy() {
 
             <Card>
               <BlockStack gap="400">
-                <Text as="h2" variant="headingMd">プライバシーポリシーの内容</Text>
+                <InlineStack align="space-between" blockAlign="center" gap="300">
+                  <Text as="h2" variant="headingMd">プライバシーポリシーの内容</Text>
+                  <Button onClick={importFromConfig}>事業者情報から再取込</Button>
+                </InlineStack>
                 <FormLayout>
                   <TextField
                     label="事業者名 *"

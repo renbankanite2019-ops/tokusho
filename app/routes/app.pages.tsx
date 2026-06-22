@@ -44,6 +44,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       type,
       title: PAGE_TYPES[type].title,
       body: existing?.body || defaultBody(type, shopConfig),
+      // 現在の事業者情報から作った雛形（「再取込」ボタンで本文をこれに戻す）
+      freshDefault: defaultBody(type, shopConfig),
       isPublished: existing?.isPublished ?? false,
       pageUrl: existing?.pageUrl ?? null,
     };
@@ -248,7 +250,14 @@ export default function Pages() {
                       multiline={8}
                       helpText="プレーンテキストで入力（改行はそのまま反映されます）"
                     />
-                    <InlineStack align="end">
+                    <InlineStack align="space-between" blockAlign="center" gap="300">
+                      <Button
+                        onClick={() =>
+                          setBodies((b) => ({ ...b, [p.type]: p.freshDefault }))
+                        }
+                      >
+                        事業者情報から再取込
+                      </Button>
                       <Button variant="primary" submit loading={submitting}>
                         {p.isPublished ? "更新して公開" : "公開する"}
                       </Button>
