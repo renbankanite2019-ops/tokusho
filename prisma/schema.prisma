@@ -87,6 +87,10 @@ model ShopConfig {
   lastPublishedAt DateTime?
   isPublished     Boolean @default(false)
 
+  // 法令アップデートのメール通知（Proプラン向け）
+  lawAlertOptOut     Boolean   @default(false) // メール通知を停止するか
+  lawAlertNotifiedAt DateTime?                 // 最後に通知メールを送った時刻（重複送信防止）
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

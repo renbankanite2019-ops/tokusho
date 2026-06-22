@@ -371,6 +371,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     accentColor: (formData.get("accentColor") as string) || "#008060",
     templateStyle: (formData.get("templateStyle") as string) || "table",
     bilingual: formData.get("bilingual") === "on",
+    // チェックON=通知を受け取る → optOut は反転
+    lawAlertOptOut: formData.get("lawAlertEmail") !== "on",
   };
 
   const errors = validateConfig(data);
@@ -417,6 +419,10 @@ export default function Setup() {
     config?.templateStyle || "table",
   ]);
   const [bilingual, setBilingual] = useState(config?.bilingual ?? false);
+  // 法令アップデートのメール通知を受け取るか（既定ON。optOut の反転）
+  const [lawAlertEmail, setLawAlertEmail] = useState(
+    !(config?.lawAlertOptOut ?? false)
+  );
   // クイック設定（販売形態）の選択状態
   const [salesType, setSalesType] = useState<string[]>([]);
   // Shopify 設定からの取込結果（確認メッセージ用）
@@ -552,6 +558,7 @@ export default function Setup() {
         )}
         <input type="hidden" name="templateStyle" value={templateStyle[0]} />
         {bilingual && <input type="hidden" name="bilingual" value="on" />}
+        {lawAlertEmail && <input type="hidden" name="lawAlertEmail" value="on" />}
 
         <Layout>
           {actionData?.errors && (
@@ -997,6 +1004,12 @@ export default function Setup() {
                     placeholder="例：受付時間 平日10:00〜17:00（土日祝を除く）"
                     helpText="対応時間・対応言語など"
                   />
+                  <Checkbox
+                    label="法令アップデートのメール通知を受け取る（Proプラン）"
+                    checked={lawAlertEmail}
+                    onChange={setLawAlertEmail}
+                    helpText="特商法等のテンプレート更新があった際、登録メールにお知らせします。アプリ内のお知らせは全プランで表示されます。"
+                  />
                 </FormLayout>
               </BlockStack>
             </Card>
@@ -1010,7 +1023,7 @@ export default function Setup() {
                   6. デザイン
                 </Text>
                 <Text as="p" variant="bodyMd" tone="subdued">
-                  ※ デザインのカスタマイズは Basic プラン以上で公開ページに反映されます（Freeプランは標準デザイン）。
+                  ※ デザインのカスタマイズは Pro プランで公開ページに反映されます（Freeプランは標準デザイン）。
                 </Text>
                 <FormLayout>
                   <ColorField
