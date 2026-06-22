@@ -277,7 +277,7 @@ export function generateTokushoHtml(
   background: ${thBg};
   color: ${thColor};
   white-space: nowrap;
-  width: 200px;
+  width: 170px;
   font-weight: bold;
 }
 .tokusho-table ul {
@@ -320,13 +320,32 @@ export function generateTokushoHtml(
   padding-right: 14px;
 }
 @media (max-width: 600px) {
-  .tokusho-table th {
-    width: auto;
-    display: block;
-    border-bottom: none;
-  }
+  /* 狭い画面ではラベルを大きな色帯にせず、コンパクトな見出し行にする */
+  .tokusho-table th,
   .tokusho-table td {
     display: block;
+    width: auto;
+    border: none;
+    white-space: normal;
+  }
+  .tokusho-table tr {
+    border-bottom: 1px solid #e3e6e8;
+  }
+  .tokusho-table th {
+    background: transparent;
+    color: #202223;
+    border-left: 4px solid ${accent || "#5f7d6e"};
+    padding: 10px 0 2px 12px;
+    font-size: 0.95em;
+  }
+  .tokusho-table td {
+    padding: 0 0 12px 12px;
+  }
+  /* 返品サブ表は色帯を付けず、コンパクト表示のまま */
+  .tokusho-table td .tokusho-subtable th {
+    border-left: none;
+    padding: 7px 0;
+    font-size: 1em;
   }
 }
 </style>
