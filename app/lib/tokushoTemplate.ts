@@ -71,7 +71,7 @@ export function generateTokushoHtml(
   // （色を固定すると、色付きヘッダー＝白文字の上でグレーが読みづらくなるため）
   const L = (ja: string, en: string) =>
     bil
-      ? `${ja}<br><small style="font-weight:normal;opacity:0.72;font-size:0.78em;letter-spacing:0.02em;">${en}</small>`
+      ? `${ja}<br><small style="display:inline-block;white-space:normal;font-weight:normal;opacity:0.72;font-size:0.78em;line-height:1.3;letter-spacing:0.02em;">${en}</small>`
       : ja;
   const {
     businessType,
@@ -258,7 +258,7 @@ export function generateTokushoHtml(
 .tokusho-updated {
   color: #666;
   font-size: 0.9em;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 .tokusho-table {
   width: 100%;
@@ -269,7 +269,8 @@ export function generateTokushoHtml(
 .tokusho-table td {
   border: ${cellBorder};
   border-bottom: ${rowBorder};
-  padding: 12px 16px;
+  padding: 8px 16px;
+  line-height: 1.5;
   text-align: left;
   vertical-align: top;
 }
@@ -277,7 +278,7 @@ export function generateTokushoHtml(
   background: ${thBg};
   color: ${thColor};
   white-space: nowrap;
-  width: 170px;
+  width: 200px;
   font-weight: bold;
 }
 .tokusho-table ul {
