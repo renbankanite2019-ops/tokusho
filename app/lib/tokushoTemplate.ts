@@ -129,13 +129,15 @@ export function generateTokushoHtml(
     // デジタル/ダウンロード商品では物理商品前提の文言が成立しないため切り替える
     returnPolicyText = config.sellsDigital
       ? `
-      <p>商品の性質上（デジタルコンテンツ／ダウンロード商品のため）、提供開始後の返品・返金はお受けできません。<br>
-      ただし、ダウンロードや動作に不具合がある場合は、購入後8日以内にご連絡ください。状況を確認のうえ対応いたします。</p>
+      <p>本商品はデジタルコンテンツ（ダウンロード／オンライン提供）です。通信販売には特定商取引法上のクーリング・オフ制度の適用はありません。<br>
+      当店では、商品の性質上、ダウンロードまたは利用開始後の返品・返金はお受けできません（返品特約）。<br>
+      ただし、提供されたデータに不具合がある場合は、商品到着後8日以内にご連絡いただければ、再提供または返金等の対応をいたします。</p>
+      ${returnNote ? `<p>${escapeHtml(returnNote)}</p>` : ""}
     `
       : `
-      <p>商品の性質上、原則として返品・交換はお受けしておりません（法令に基づく場合を除く）。<br>
-      ただし、商品の破損・汚損・誤送等、当店の不備による場合は、商品到着後8日以内にご連絡ください。<br>
-      返送料は当店が負担いたします。</p>
+      <p>当店の返品特約として、商品の性質上、原則として返品・交換はお受けしておりません。<br>
+      ただし、商品の破損・汚損・誤送等、当店の不備による場合は、商品到着後8日以内にご連絡ください。返送料は当店が負担いたします。</p>
+      ${returnNote ? `<p>${escapeHtml(returnNote)}</p>` : ""}
     `;
   } else {
     returnPolicyText = `
@@ -206,7 +208,7 @@ export function generateTokushoHtml(
     </tr>
     ${safeWebsite ? `<tr><th>${L("ウェブサイト", "Website")}</th><td><a href="${safeWebsite}">${safeWebsite}</a></td></tr>` : ""}
 
-    <tr><th>${L("販売価格", "Price")}</th><td>${safeSalesPrice}${/税/.test(salesPrice) ? "" : "（税込）"}</td></tr>
+    <tr><th>${L("販売価格", "Price")}</th><td>${safeSalesPrice}</td></tr>
     <tr><th>${L("送料", "Shipping")}</th><td>${safeShippingFee}</td></tr>
     ${safeOtherCosts ? `<tr><th>${L("商品代金以外の費用", "Other fees")}</th><td>${safeOtherCosts}</td></tr>` : ""}
 
@@ -387,12 +389,22 @@ export function validateConfig(config: Partial<ShopConfig>): string[] {
     errors.push("メールアドレスの形式が正しくありません");
   }
 
+  // 送料は必須表示事項（デジタル商品で配送が無い場合を除く）
+  if (!config.sellsDigital && !config.shippingFee?.trim()) {
+    errors.push("送料（または送料に関する表示）は必須です");
+  }
+
   // デジタル商品・継続課金を販売する場合は、対応する条件の記載を必須にする
   if (config.sellsDigital && !config.softwareRequirements?.trim()) {
     errors.push("デジタル商品を販売する場合は、動作環境（ソフトウェア要件）の記載が必要です");
   }
   if (config.sellsSubscription && !config.subscriptionTerms?.trim()) {
     errors.push("継続課金・定期購入を販売する場合は、継続契約条件の記載が必要です");
+  }
+
+  // 返品不可（NO_RETURN）を選んだ場合は、その理由の明記を必須にする（特商法の返品特約）
+  if (config.returnPolicy === "NO_RETURN" && !config.returnNote?.trim()) {
+    errors.push("返品不可とする場合は、その理由（返品に関する補足）の記載が必要です");
   }
 
   return errors;

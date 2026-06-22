@@ -422,7 +422,7 @@ export default function Setup() {
     email: config?.email || pf?.email || "",
     websiteUrl: config?.websiteUrl || pf?.websiteUrl || "",
     salesPrice: config?.salesPrice || "各商品ページに記載",
-    shippingFee: config?.shippingFee || "全国一律500円（税込）",
+    shippingFee: config?.shippingFee || "",
     otherCosts: config?.otherCosts || "",
     applicationPeriod: config?.applicationPeriod || "",
     contractLiability: config?.contractLiability || CONTRACT_LIABILITY_PRESETS[0].value,
@@ -503,14 +503,20 @@ export default function Setup() {
   if (!fields.email.trim()) liveWarnings.push("メールアドレスが未入力です（必須）");
   if (businessType[0] === "CORPORATION" && !fields.representativeName.trim())
     liveWarnings.push("法人の場合は代表者名の記載が必要です");
+  if (businessType[0] === "INDIVIDUAL" && !fields.responsibleName.trim())
+    liveWarnings.push(
+      "個人事業主の方は、屋号のみでなく氏名（運営責任者名）の記載が推奨されます（特商法）"
+    );
   if (paymentMethods.length === 0)
     liveWarnings.push("お支払い方法を1つ以上選択してください");
+  if (!sellsDigital && !fields.shippingFee.trim())
+    liveWarnings.push("送料が未入力です（必須）");
   if (sellsDigital && !fields.softwareRequirements.trim())
     liveWarnings.push("デジタル商品の動作環境（対応OS・ブラウザ等）が未入力です");
   if (sellsSubscription && !fields.subscriptionTerms.trim())
     liveWarnings.push("継続課金の解約方法・契約期間・課金サイクルの記載が必要です");
   if (returnPolicy[0] === "NO_RETURN" && !fields.returnNote.trim())
-    liveWarnings.push("返品不可の場合は、その旨と理由を明記することが推奨されます");
+    liveWarnings.push("返品不可とする場合は、その理由の記載が必須です（返品に関する補足）");
 
   return (
     <Page
@@ -681,6 +687,7 @@ export default function Setup() {
                     onChange={setField("address")}
                     autoComplete="street-address"
                     placeholder="例：渋谷区渋谷1-1-1"
+                    helpText="現に事業を行っている住所を記載してください（私書箱・バーチャルオフィス等は不可とされる場合があります）"
                   />
 
                   <TextField
@@ -700,7 +707,7 @@ export default function Setup() {
                     autoComplete="tel"
                     type="tel"
                     placeholder="例：03-1234-5678"
-                    helpText="お客様からのお問い合わせ用の電話番号"
+                    helpText="確実につながる番号を記載してください（お客様からの問い合わせ用）"
                   />
 
                   <TextField
@@ -740,18 +747,19 @@ export default function Setup() {
                     value={fields.salesPrice}
                     onChange={setField("salesPrice")}
                     autoComplete="off"
-                    helpText="例：各商品ページに記載（税込）"
+                    helpText="税込/税抜を明記してください（自動付記しません）。例：各商品ページに記載（税込）"
                     multiline={2}
                   />
 
                   {!sellsDigital && (
                     <TextField
-                      label="送料"
+                      label="送料 *"
                       name="shippingFee"
                       value={fields.shippingFee}
                       onChange={setField("shippingFee")}
                       autoComplete="off"
-                      helpText="例：全国一律500円（税込）、5,000円以上購入で送料無料"
+                      placeholder="例：全国一律500円（税込）、5,000円以上で送料無料"
+                      helpText="必須。税込/税抜も明記してください（実際の送料と一致させること）"
                       multiline={2}
                     />
                   )}
@@ -902,11 +910,10 @@ export default function Setup() {
                       />
                       <Banner tone="info">
                         <p>
-                          デジタル商品（ダウンロード・オンライン提供）について：通信販売にクーリング・オフ制度は
-                          適用されません。また、ダウンロード・利用開始後の返品はお受けできないとするのが一般的です。
-                          その場合は<strong>返品不可である旨と理由を明記</strong>してください
-                          （返品の可否・条件は法定の必須表示項目です）。
-                          送料の欄は非表示にしています。最終的な表記は必要に応じて専門家にご確認ください。
+                          デジタル商品について：通信販売は法定のクーリング・オフ（訪問販売等が対象）の対象外です。
+                          返品の可否は<strong>当店の返品特約</strong>によります。返品不可とする場合は、その旨と
+                          <strong>理由の明記が必須</strong>です（下の「返品に関する補足」に記載してください）。
+                          送料欄は非表示にしています。最終的な表記は必要に応じて専門家にご確認ください。
                         </p>
                       </Banner>
                     </>
