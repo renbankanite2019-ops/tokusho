@@ -6,10 +6,11 @@ import type { ShopConfig } from "@prisma/client";
  * これより前に公開されたページは「古い」と判定し、ダッシュボードで再公開を促す。
  * （注：法令変更の把握・文言の確定は人／専門家が行う。ここは配布の仕組みのみ。）
  */
-export const TEMPLATE_UPDATED_AT = "2026-06-19";
+export const TEMPLATE_UPDATED_AT = "2026-06-22";
 
 /** 更新履歴（新しい順）。ダッシュボードに最新の1件を表示する。 */
 export const TEMPLATE_CHANGELOG: { date: string; note: string }[] = [
+  { date: "2026-06-22", note: "表示の改善（タイトル重複の解消、返品表の見やすさ向上）" },
   { date: "2026-06-19", note: "テンプレートの整備（初期バージョン）" },
 ];
 
