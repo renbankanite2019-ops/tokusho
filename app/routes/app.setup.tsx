@@ -329,7 +329,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  return json({ config, prefill, detected });
+  // メール送信が実際に可能（独自ドメインを Resend に設定済み）なときだけ
+  // 法令アップデートのメール通知オプションを表示する。
+  const merchantEmailEnabled = !!process.env.MAIL_FROM;
+
+  return json({ config, prefill, detected, merchantEmailEnabled });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -390,7 +394,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Setup() {
-  const { config, prefill, detected } = useLoaderData<typeof loader>();
+  const { config, prefill, detected, merchantEmailEnabled } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -1004,12 +1009,14 @@ export default function Setup() {
                     placeholder="例：受付時間 平日10:00〜17:00（土日祝を除く）"
                     helpText="対応時間・対応言語など"
                   />
-                  <Checkbox
-                    label="法令アップデートのメール通知を受け取る（Proプラン）"
-                    checked={lawAlertEmail}
-                    onChange={setLawAlertEmail}
-                    helpText="特商法等のテンプレート更新があった際、登録メールにお知らせします。アプリ内のお知らせは全プランで表示されます。"
-                  />
+                  {merchantEmailEnabled && (
+                    <Checkbox
+                      label="法令アップデートのメール通知を受け取る（Proプラン）"
+                      checked={lawAlertEmail}
+                      onChange={setLawAlertEmail}
+                      helpText="特商法等のテンプレート更新があった際、登録メールにお知らせします。アプリ内のお知らせは全プランで表示されます。"
+                    />
+                  )}
                 </FormLayout>
               </BlockStack>
             </Card>
