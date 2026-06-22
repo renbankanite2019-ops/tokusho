@@ -33,10 +33,12 @@ export function defaultBody(type: PageType, c: ShopConfig | null): string {
   const phone = c?.phone || "";
   const email = c?.email || "";
 
+  const responsible = rep || c?.responsibleName || "";
+
   if (type === "about") {
     return [
       `販売業者：${name}`,
-      rep ? `代表者：${rep}` : "代表者：（記入してください）",
+      responsible ? `代表者：${responsible}` : "代表者：（記入してください）",
       `所在地：${addr}`,
       `電話番号：${phone}`,
       `メールアドレス：${email}`,
@@ -55,7 +57,21 @@ export function defaultBody(type: PageType, c: ShopConfig | null): string {
       `お問い合わせ内容には、数営業日以内に返信いたします。`,
     ].join("\n");
   }
-  // returns
+  // returns — 特商法本表の返品設定（returnPolicy）と内容を一致させる（単一ソース）
+  if (c?.returnPolicy === "NO_RETURN") {
+    return [
+      `【返品・交換について】`,
+      ``,
+      c?.sellsDigital
+        ? `本商品はデジタルコンテンツ（ダウンロード／オンライン提供）のため、ダウンロードまたは利用開始後の返品・返金はお受けできません（返品特約）。通信販売には法定のクーリング・オフは適用されません。`
+        : `当店の返品特約として、商品の性質上、原則として返品・交換はお受けしておりません。`,
+      c?.returnNote ? c.returnNote : "",
+      ``,
+      `商品の破損・汚損・誤送等、当店の不備による場合や、提供データに不具合がある場合は、商品到着後8日以内に ${email} までご連絡ください。`,
+    ]
+      .filter((l) => l !== "")
+      .join("\n");
+  }
   return [
     `【返品・交換について】`,
     ``,
@@ -63,10 +79,11 @@ export function defaultBody(type: PageType, c: ShopConfig | null): string {
     `返品条件：${c?.returnCondition || "未使用・未開封のもの"}`,
     `返品送料：${RETURN_SHIPPING[c?.returnShipping || "CUSTOMER"] || ""}`,
     c?.contractLiability ? `契約不適合責任：${c.contractLiability}` : "",
+    c?.returnNote ? `補足：${c.returnNote}` : "",
     ``,
     `返品をご希望の場合は、まず ${email} までご連絡ください。`,
   ]
-    .filter((l) => l !== undefined)
+    .filter((l) => l !== "")
     .join("\n");
 }
 

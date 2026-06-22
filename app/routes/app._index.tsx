@@ -190,9 +190,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       },
       ...PAGE_TYPE_LIST.map((type) => ({
         name: PAGE_TYPES[type].title,
+        // 返品は事業者情報から自動生成（本表と一致）。他は既存本文 or 雛形。
         html: renderCustomPageHtml(
           PAGE_TYPES[type].title,
-          cpMap[type]?.body || defaultBody(type, config)
+          type === "returns"
+            ? defaultBody("returns", config)
+            : cpMap[type]?.body || defaultBody(type, config)
         ),
       })),
     ];
@@ -263,12 +266,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     results.push({ name: "プライバシーポリシー", error: msg(e) });
   }
 
-  // 3) 会社概要・お問い合わせ・返品ポリシー（既存本文 or 事業者情報からの雛形）
+  // 3) 会社概要・お問い合わせ・返品ポリシー
   for (const type of PAGE_TYPE_LIST) {
     const meta = PAGE_TYPES[type];
     const where = { shop_pageType: { shop: session.shop, pageType: type } };
     const existing = await prisma.customPage.findUnique({ where });
-    const body = existing?.body || defaultBody(type, config);
+    // 返品は事業者情報から自動生成（本表と一致）。他は既存本文 or 雛形。
+    const body =
+      type === "returns"
+        ? defaultBody("returns", config)
+        : existing?.body || defaultBody(type, config);
+    // 未入力プレースホルダが残る会社概要等はスキップ（未完成の公開を防ぐ）
+    if (type !== "returns" && body.includes("（記入してください）")) {
+      results.push({ name: meta.title, error: "「（記入してください）」が未入力のためスキップしました" });
+      continue;
+    }
     try {
       const html = renderCustomPageHtml(meta.title, body);
       const r = await publishPage(admin, session.shop, {
