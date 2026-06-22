@@ -10,7 +10,7 @@ export const TEMPLATE_UPDATED_AT = "2026-06-22";
 
 /** 更新履歴（新しい順）。ダッシュボードに最新の1件を表示する。 */
 export const TEMPLATE_CHANGELOG: { date: string; note: string }[] = [
-  { date: "2026-06-22", note: "表示の改善（タイトル重複の解消、返品表の見やすさ向上）" },
+  { date: "2026-06-22", note: "返品・デジタル商品の文言見直し、税込の自動付記廃止、表示の改善" },
   { date: "2026-06-19", note: "テンプレートの整備（初期バージョン）" },
 ];
 
