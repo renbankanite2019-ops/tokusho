@@ -62,11 +62,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   );
   const latestChange = TEMPLATE_CHANGELOG[0] ?? null;
 
-  // 公開中の全ページ（特商法・プライバシー・追加ページ）をURL付きで一覧化する。
+  // 公開中のページ一覧（特商法は上部バナーで表示済みのため、ここでは除外）。
   const publishedPages: { name: string; url: string }[] = [];
-  if (config?.isPublished && config.pageUrl) {
-    publishedPages.push({ name: "特定商取引法に基づく表記", url: config.pageUrl });
-  }
   if (privacy?.isPublished && privacy.pageUrl) {
     publishedPages.push({ name: "プライバシーポリシー", url: privacy.pageUrl });
   }
@@ -367,28 +364,25 @@ export default function Index() {
           )}
         </Layout.Section>
 
-        {/* 公開中のページ一覧（全ページの表示リンク） */}
+        {/* その他の公開中のページ（特商法以外）。ページ名そのものをリンクにする。 */}
         {publishedPages.length > 0 && (
           <Layout.Section>
             <Card>
               <BlockStack gap="300">
                 <Text as="h2" variant="headingMd">
-                  公開中のページ（{publishedPages.length}）
+                  その他の公開中のページ
                 </Text>
                 <BlockStack gap="200">
                   {publishedPages.map((p, i) => (
                     <div key={i}>
-                      <InlineStack align="space-between" blockAlign="center" gap="300">
-                        <Text as="span" variant="bodyMd">{p.name}</Text>
-                        <a
-                          href={p.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#005bd3", textDecoration: "none", fontSize: 13, whiteSpace: "nowrap" }}
-                        >
-                          表示する →
-                        </a>
-                      </InlineStack>
+                      <a
+                        href={p.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#005bd3", textDecoration: "none", fontSize: 14 }}
+                      >
+                        {p.name} →
+                      </a>
                       {i < publishedPages.length - 1 && (
                         <Box paddingBlockStart="200">
                           <Divider />
