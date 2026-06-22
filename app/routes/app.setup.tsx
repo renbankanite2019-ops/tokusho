@@ -946,7 +946,7 @@ export default function Setup() {
                         placeholder="例：対応OS Windows 10以降 / ブラウザ Chrome・Safari 最新版"
                         helpText="対応OS・ブラウザ・必要スペック等。デジタル商品販売時は必須です"
                       />
-                      <Banner tone="warning">
+                      <Banner tone="info">
                         <p>
                           デジタル商品（ダウンロード・オンライン提供）について：通信販売にクーリング・オフ制度は
                           適用されません。また、ダウンロード・利用開始後の返品はお受けできないとするのが一般的です。
