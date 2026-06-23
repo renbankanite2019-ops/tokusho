@@ -578,9 +578,11 @@ export default function Setup() {
                   >
                     <InlineStack align="space-between" blockAlign="center" gap="300">
                       <Text as="p" variant="bodyMd">
-                        🏪 Shopifyストアの設定から事業者名・住所・電話・メールを自動入力できます。
+                        {config
+                          ? "🏪 Shopifyストアの設定から事業者名・住所・電話・メールを再取込できます。"
+                          : "🏪 Shopifyストアの設定から事業者名・住所・電話・メールを自動入力しました。内容をご確認ください（最新化する場合は［再取込］）。"}
                       </Text>
-                      <Button onClick={importFromShopify}>Shopify設定から取込む</Button>
+                      <Button onClick={importFromShopify}>Shopify設定から再取込</Button>
                     </InlineStack>
                   </Box>
                 )}
