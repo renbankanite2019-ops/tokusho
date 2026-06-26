@@ -91,6 +91,9 @@ model ShopConfig {
   lawAlertOptOut     Boolean   @default(false) // メール通知を停止するか
   lawAlertNotifiedAt DateTime?                 // 最後に通知メールを送った時刻（重複送信防止）
 
+  // App Store レビュー依頼バナー（公開後に1回だけ表示。閉じたら再表示しない）
+  reviewPromptDismissedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

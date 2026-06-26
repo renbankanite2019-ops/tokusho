@@ -3,7 +3,7 @@ import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from "@remix-run/node";
-import { useLoaderData, useActionData, Form, useNavigation } from "@remix-run/react";
+import { useLoaderData, useActionData, Form, useNavigation, useSubmit } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -73,13 +73,39 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  return json({ config, errors, shop, isPro, isOutdated, latestChange, publishedPages });
+  // 特商法ページを公開済みで、まだレビュー依頼バナーを閉じていない場合のみ表示。
+  const showReviewPrompt = !!(
+    config?.isPublished &&
+    config?.pageUrl &&
+    !config?.reviewPromptDismissedAt
+  );
+
+  return json({
+    config,
+    errors,
+    shop,
+    isPro,
+    isOutdated,
+    latestChange,
+    publishedPages,
+    showReviewPrompt,
+  });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin, billing } = await authenticate.admin(request);
   const formData = await request.formData();
   const intent = (formData.get("intent") as string) || "publish_all";
+
+  // ---- レビュー依頼バナーを閉じる（以後表示しない）。config検証は不要 ----
+  if (intent === "dismiss_review") {
+    await prisma.shopConfig.updateMany({
+      where: { shop: session.shop },
+      data: { reviewPromptDismissedAt: new Date() },
+    });
+    return json({ reviewDismissed: true });
+  }
+
   const { isPro } = await getPlanStatus(billing);
 
   const config = await prisma.shopConfig.findUnique({
@@ -312,10 +338,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Index() {
-  const { config, errors, isPro, isOutdated, latestChange, publishedPages } =
+  const { config, errors, isPro, isOutdated, latestChange, publishedPages, showReviewPrompt } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const submit = useSubmit();
+  const dismissReview = () =>
+    submit({ intent: "dismiss_review" }, { method: "post" });
   const navIntent = navigation.formData?.get("intent");
   const isPreviewing =
     navigation.state === "submitting" && navIntent === "preview_all";
@@ -368,6 +397,41 @@ export default function Index() {
             </Banner>
           )}
         </Layout.Section>
+
+        {/* レビュー依頼バナー（公開済み＆未クローズの場合のみ。閉じたら再表示しない） */}
+        {showReviewPrompt && (
+          <Layout.Section>
+            <Banner
+              title="Tokusho はお役に立っていますか？"
+              tone="info"
+              onDismiss={dismissReview}
+            >
+              <BlockStack gap="300">
+                <Text as="p">
+                  特商法ページの作成にご利用いただきありがとうございます。
+                  もしお役に立ちましたら、App Store でのレビューにご協力いただけると開発の励みになります。
+                </Text>
+                <InlineStack gap="300">
+                  {/* 外部リンクは埋め込みiframe内だと X-Frame-Options で開けないため新規タブで開く */}
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      window.open(
+                        "https://apps.shopify.com/tokusho/reviews",
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
+                      dismissReview();
+                    }}
+                  >
+                    レビューを書く
+                  </Button>
+                  <Button onClick={dismissReview}>後で</Button>
+                </InlineStack>
+              </BlockStack>
+            </Banner>
+          </Layout.Section>
+        )}
 
         {/* その他の公開中のページ（特商法以外）。ページ名そのものをリンクにする。 */}
         {publishedPages.length > 0 && (
